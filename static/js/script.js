@@ -7,20 +7,31 @@ class Vertex {
     }
 }
 
-class Edge {}
+class Edge {
+    constructor(startVertex, endVertex, konvaObject) {
+        this.startVertex = startVertex;
+        this.endVertex = endVertex;
+        this.konvaObject = konvaObject;
+    }
+}
 
 class Face {}
 
 document.addEventListener("DOMContentLoaded", () => {
     // --- Konva Setup ---
-    const graphContainer = document.getElementById("graph_container");
+    const graphContainer = document.getElementById("graphContainer");
     const width = graphContainer.offsetWidth;
     const height = graphContainer.offsetHeight;
 
-    const adjacencyMatrixTable = document.getElementById("adjacency_matrix");
+    const adjacencyMatrixTable = document.getElementById(
+        "adjacencyMatrixTable"
+    );
+    const buttonForAddEdge = document.getElementById("buttonForAddEdge");
+    const formForAddVertex = document.getElementById("formForAddVertex");
+    const inputForAddVertex = document.getElementById("inputForAddVertex");
 
     const stage = new Konva.Stage({
-        container: "graph_container",
+        container: "graphContainer",
         width: width,
         height: height,
     });
@@ -34,23 +45,26 @@ document.addEventListener("DOMContentLoaded", () => {
     let adjacencyMatrix = []; // 2D array representing connections
     let faces = [];
 
+    // --- Modes ---
+    let mode = "normal"; // 'normal', 'addEdgeStart', 'deleteVertex', 'deleteEdge', 'addFace'
+    let edgeStartVertex = null; // Vertex where edge creation starts
+    let selectedVertex = null; // Currently selected vertex (for deletion)
+    let selectedEdge = null; // Currently selected edge (for deletion)
+
+    // --- Vertex creation ---
     function addVertex(x, y, label) {
         const vertexCircle = new Konva.Circle({
-            x: x,
-            y: y,
             radius: 20,
             fill: "lightblue",
             stroke: "black",
             strokeWidth: 2,
         });
         const vertexText = new Konva.Text({
-            x: x - 7,
-            y: y - 7,
             text: label,
             width: 40,
             fontSize: 20,
         });
-        const vertexGroup = new Konva.Group({ draggable: true });
+        const vertexGroup = new Konva.Group({ x: x, y: y, draggable: true });
         vertexGroup.add(vertexCircle);
         vertexGroup.add(vertexText);
 
@@ -59,17 +73,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
         vertexGroup.on("dragmove", () => {
             updateVertexPosition(vertexGroup);
+            updateEdges();
         });
         vertexGroup.on("click", () => {
-            // do something, e.g. deleting vertex or adding edge
+            if (mode === "addEdgeStart") {
+                if (edgeStartVertex) {
+                    addEdge(edgeStartVertex, vertexGroup);
+                    mode = "normal";
+                    edgeStartVertex = null;
+                    buttonForAddEdge.textContent = "Добавить ребро";
+                } else {
+                    edgeStartVertex = vertexGroup;
+                    buttonForAddEdge.textContent = "Выберите вторую вершину";
+                }
+            }
         });
 
         layer.add(vertexGroup);
         layer.draw();
     }
 
-    const formForAddVertex = document.getElementById("formForAddVertex");
-    const inputForAddVertex = document.getElementById("inputForAddVertex");
     formForAddVertex.addEventListener("submit", (e) => {
         e.preventDefault();
 
@@ -92,6 +115,59 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // --- Edge creation ---
+    buttonForAddEdge.addEventListener("click", () => {
+        if (mode === "normal") {
+            mode = "addEdgeStart";
+            buttonForAddEdge.textContent = "Выберите первую вершину";
+        } else {
+            mode = "normal";
+            edgeStartVertex = null;
+            buttonForAddEdge.textContent = "Добавить ребро";
+        }
+    });
+
+    function addEdge(startVertexKonva, endVertexKonva) {
+        const startVertex = vertices.find(
+            (v) => v.konvaObject === startVertexKonva
+        );
+        const endVertex = vertices.find(
+            (v) => v.konvaObject === endVertexKonva
+        );
+
+        if (!startVertex || !endVertex) {
+            // Vertices must exist
+            console.warn(
+                "Something went wrong, can't find start or end vertex"
+            );
+            return;
+        }
+        const edgeLine = new Konva.Line({
+            points: [startVertex.x, startVertex.y, endVertex.x, endVertex.y],
+            stroke: "red",
+            strokeWidth: 3,
+            tension: 0.5, // For curved lines
+        });
+        const edge = new Edge(startVertex, endVertex, edgeLine);
+
+        edges.push(edge);
+        layer.add(edgeLine);
+        edgeLine.moveToBottom(); // Keep edges behind vertices
+        layer.draw();
+        updateAdjacencyMatrix();
+    }
+
+    function updateEdges() {
+        edges.forEach((edge) => {
+            const start = vertices.find((v) => v === edge.startVertex);
+            const end = vertices.find((v) => v === edge.endVertex);
+            if (start && end) {
+                edge.konvaObject.points([start.x, start.y, end.x, end.y]);
+            }
+        });
+        layer.draw();
+    }
+
     // --- Adjacency Matrix ---
     function updateAdjacencyMatrix() {
         adjacencyMatrix = []; // Reset matrix
@@ -104,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Populate matrix based on edges
         edges.forEach((edge) => {
             const start = vertices.findIndex((v) => v === edge.vertexStart);
-            const end = vertices.findIndex((v) => v === edge.vertexStart);
+            const end = vertices.findIndex((v) => v === edge.vertexEnd);
             if (start !== -1 && end !== -1) {
                 adjacencyMatrix[start][end] = 1;
                 adjacencyMatrix[end][start] = 1; // Assuming undirected graph

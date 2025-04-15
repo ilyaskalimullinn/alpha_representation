@@ -1,10 +1,10 @@
-#graph_container {
+#graphContainer {
     width: 800px;
     height: 600px;
     border: 1px solid black;
     margin: 20px;
 }
 
-#matrix {
+#adjacencyMatrixTable {
     margin-left: 20px;
 }
