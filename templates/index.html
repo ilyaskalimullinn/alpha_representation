@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Раскраски Тейта</title>
+    <link rel="stylesheet" href="/static/style/style.css">
+    <script src="https://unpkg.com/konva@9/konva.min.js"></script> <!-- Konva.js Library -->
+</head>
+<body>
+    <div class="container">
+        <h1>Раскраски Тейта</h1>
+        
+        <div id="graph_container">
+
+        </div>
+
+        <form action="#" id="formForAddVertex">
+            <p>Добавить вершину</p>
+            <label for="inputForAddVertex">Метка вершины</label>
+            <input type="text" id="inputForAddVertex" placeholder="1">
+            <input type="submit" value="Добавить">
+        </form>
+
+        <h2>Матрица смежности</h2>
+        <table border="1" cellspacing="1" cellpadding="1" id="adjacency_matrix">
+            <!-- <tr>
+                <th>1</th>
+                <th>2</th>
+                <th>3</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>2</td>
+                <td>3</td>
+            </tr> -->
+        </table>
+    </div>
+    <script src="/static/js/script.js"></script>
+</body>
+</html>

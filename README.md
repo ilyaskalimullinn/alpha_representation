@@ -1,1 +1,6 @@
-# alpha_representation
+# Альфа-представления для подсчета количества раскрасок Тейта
+
+Для запуска:
+```shell
+uvicorn src.main:app --reload
+```
