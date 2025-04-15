@@ -179,8 +179,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Populate matrix based on edges
         edges.forEach((edge) => {
-            const start = vertices.findIndex((v) => v === edge.vertexStart);
-            const end = vertices.findIndex((v) => v === edge.vertexEnd);
+            const start = vertices.findIndex((v) => v === edge.startVertex);
+            const end = vertices.findIndex((v) => v === edge.endVertex);
             if (start !== -1 && end !== -1) {
                 adjacencyMatrix[start][end] = 1;
                 adjacencyMatrix[end][start] = 1; // Assuming undirected graph
