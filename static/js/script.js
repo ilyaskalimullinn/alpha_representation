@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "adjacencyMatrixTable"
     );
     const buttonForAddEdge = document.getElementById("buttonForAddEdge");
+    const buttonForDeleteEdge = document.getElementById("buttonForDeleteEdge");
     const buttonForDeleteVertex = document.getElementById(
         "buttonForDeleteVertex"
     );
@@ -216,6 +217,11 @@ document.addEventListener("DOMContentLoaded", () => {
             document.body.style.cursor = "default";
             this.strokeWidth(3);
         });
+        edgeLine.on("click", function () {
+            if (mode == "deleteEdge") {
+                deleteEdge(edgeLine);
+            }
+        });
 
         edges.push(edge);
         layer.add(edgeLine);
@@ -232,6 +238,40 @@ document.addEventListener("DOMContentLoaded", () => {
                 edge.konvaObject.points([start.x, start.y, end.x, end.y]);
             }
         });
+        layer.draw();
+    }
+
+    // --- Delete Edge ---
+    buttonForDeleteEdge.addEventListener("click", () => {
+        if (mode === "deleteEdge") {
+            mode = "normal";
+            buttonForDeleteEdge.textContent = "Удалить ребро";
+        } else {
+            mode = "deleteEdge";
+            buttonForDeleteEdge.textContent = "Выберите ребро для удаления";
+        }
+    });
+
+    function deleteEdge(edgeLine) {
+        const edgeIndex = edges.findIndex((e) => e.konvaObject === edgeLine);
+        const edge = edges[edgeIndex];
+        const startIndex = vertices.findIndex((v) => v === edge.startVertex);
+        const endIndex = vertices.findIndex((v) => v === edge.endVertex);
+        if (edgeIndex === -1) {
+            console.warn("Edge not found");
+            return;
+        }
+        if ((startIndex === -1) | (endIndex === -1)) {
+            console.warn("Start and end of edge can't be found");
+            return;
+        }
+        adjacencyMatrix[startIndex][endIndex] = 0;
+        adjacencyMatrix[endIndex][startIndex] = 0;
+
+        edges.splice(edgeIndex, 1);
+        edge.konvaObject.destroy();
+
+        updateAdjacencyMatrix();
         layer.draw();
     }
 
