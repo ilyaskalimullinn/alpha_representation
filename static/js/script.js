@@ -27,6 +27,9 @@ document.addEventListener("DOMContentLoaded", () => {
         "adjacencyMatrixTable"
     );
     const buttonForAddEdge = document.getElementById("buttonForAddEdge");
+    const buttonForDeleteVertex = document.getElementById(
+        "buttonForDeleteVertex"
+    );
     const formForAddVertex = document.getElementById("formForAddVertex");
     const inputForAddVertex = document.getElementById("inputForAddVertex");
 
@@ -86,7 +89,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     edgeStartVertex = vertexGroup;
                     buttonForAddEdge.textContent = "Выберите вторую вершину";
                 }
+            } else if (mode === "deleteVertex") {
+                deleteVertex(vertexGroup);
+                mode = "normal";
+                buttonForDeleteVertex.textContent = "Удалить вершину";
             }
+        });
+        vertexGroup.on("mouseover", function () {
+            document.body.style.cursor = "pointer";
+            this.children[0].strokeWidth(4);
+        });
+        vertexGroup.on("mouseout", function () {
+            document.body.style.cursor = "default";
+            this.children[0].strokeWidth(2);
         });
 
         layer.add(vertexGroup);
@@ -113,6 +128,49 @@ document.addEventListener("DOMContentLoaded", () => {
             vertex.x = vertexGroup.x();
             vertex.y = vertexGroup.y();
         }
+    }
+
+    // --- Delete Vertex ---
+
+    buttonForDeleteVertex.addEventListener("click", () => {
+        if (mode === "normal") {
+            mode = "deleteVertex";
+            buttonForDeleteVertex.textContent =
+                "Нажмите на вершину, которую хотите удалить";
+        } else {
+            mode = "normal";
+            buttonForDeleteVertex.textContent = "Удалить вершину";
+        }
+    });
+
+    function deleteVertex(vertexGroup) {
+        const vertexIndex = vertices.findIndex(
+            (v) => v.konvaObject === vertexGroup
+        );
+        if (vertexIndex === -1) {
+            console.warn("Could not find vertex");
+            return;
+        }
+        const vertex = vertices[vertexIndex];
+
+        // Remove edges connected to the vertex
+        edges = edges.filter((edgeData) => {
+            if (
+                edgeData.startVertex === vertex ||
+                edgeData.endVertex === vertex
+            ) {
+                edgeData.konvaObject.destroy(); // Remove Konva object
+                return false; // Filter out this edge
+            }
+            return true;
+        });
+
+        // Remove vertex
+        vertex.konvaObject.destroy();
+        vertices.splice(vertexIndex, 1);
+
+        updateAdjacencyMatrix();
+        layer.draw();
     }
 
     // --- Edge creation ---
@@ -149,6 +207,15 @@ document.addEventListener("DOMContentLoaded", () => {
             tension: 0.5, // For curved lines
         });
         const edge = new Edge(startVertex, endVertex, edgeLine);
+
+        edgeLine.on("mouseover", function () {
+            document.body.style.cursor = "pointer";
+            this.strokeWidth(5);
+        });
+        edgeLine.on("mouseout", function () {
+            document.body.style.cursor = "default";
+            this.strokeWidth(3);
+        });
 
         edges.push(edge);
         layer.add(edgeLine);
