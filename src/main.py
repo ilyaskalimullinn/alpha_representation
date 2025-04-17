@@ -10,9 +10,16 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
+from src.graph import calc_vertex_positions, find_faces_in_graph
+
 
 class PositionsRequest(BaseModel):
     adjacency_matrix: List[List[int]]
+
+
+class FacesRequest(BaseModel):
+    adjacency_matrix: List[List[int]]
+    positions: List[List[float]]
 
 
 BASE_DIR = pathlib.Path(os.path.abspath(__file__)).parent.parent
@@ -38,17 +45,21 @@ async def health_check():
 
 @app.post("/api/v1/positions")
 async def calc_positions(request: PositionsRequest):
-    adjacency_matrix = request.adjacency_matrix
-    print(adjacency_matrix)
-    graph = nx.from_numpy_array(np.array(adjacency_matrix))
+    """
+    Find positions of vertices of a planar graph. If not planar,
+    returns status: "error"
+    """
     try:
-        pos = nx.planar_layout(graph)
-        pos_list = [None for _ in range(len(adjacency_matrix))]
-        for ind, (x, y) in pos.items():
-            pos_list[ind] = [x, y]
+        pos_list = calc_vertex_positions(request.adjacency_matrix)
         return {"status": "ok", "data": {"positions": pos_list}}
-    except:
+    except ValueError:
         return {"status": "error", "data": {"message": "Graph is not planar"}}
 
 
-# You can run this with: uvicorn main:app --reload
+@app.post("/api/v1/find_faces")
+async def find_faces(request: FacesRequest):
+    adjacency_matrix = request.adjacency_matrix
+    positions = request.positions
+    faces = find_faces_in_graph(adjacency_matrix, positions)
+    return {"status": "ok", "data": {"faces": faces}}
+    # faces = find_faces

@@ -33,6 +33,9 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     const formForAddVertex = document.getElementById("formForAddVertex");
     const inputForAddVertex = document.getElementById("inputForAddVertex");
+    const buttonForFindingFaces = document.getElementById(
+        "buttonForFindingFaces"
+    );
 
     const buttonForGraphExport = document.getElementById(
         "buttonForGraphExport"
@@ -44,6 +47,8 @@ document.addEventListener("DOMContentLoaded", () => {
         container: "graphContainer",
         width: width,
         height: height,
+        y: height,
+        scaleY: -1,
     });
 
     const layer = new Konva.Layer();
@@ -73,6 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
             text: label,
             width: 40,
             fontSize: 20,
+            scaleY: -1,
         });
         const vertexGroup = new Konva.Group({ x: x, y: y, draggable: true });
         vertexGroup.add(vertexCircle);
@@ -410,6 +416,16 @@ document.addEventListener("DOMContentLoaded", () => {
         inputForAddVertex.placeholder = `${vertices.length + 1}`;
     }
 
+    // --- Finding faces
+    async function findFaces() {
+        let faceData = await fetchFaceData();
+    }
+
+    buttonForFindingFaces.addEventListener("click", () => {
+        findFaces();
+    });
+
+    // --- Utils ---
     function download(filename, text) {
         var element = document.createElement("a");
         element.setAttribute(
@@ -426,6 +442,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.removeChild(element);
     }
 
+    // --- Fetching from backend ---
     async function fetchVertexPositions(adjacencyMatrix) {
         console.log(JSON.stringify({ adjacency_matrix: adjacencyMatrix }));
         const resp = await fetch("/api/v1/positions", {
@@ -483,5 +500,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         return vertices;
+    }
+
+    async function fetchFaceData() {
+        let resp = await fetch("/api/v1/find_faces");
     }
 });
