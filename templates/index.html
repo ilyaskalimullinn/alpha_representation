@@ -26,6 +26,18 @@
         <button id="buttonForAddEdge">Добавить ребро</button>
         <button id="buttonForDeleteEdge">Удалить ребро</button>
 
+        <div class="fileControl">
+            <h2>Управление файлами</h2>
+            <button id="buttonForGraphExport">Экспортировать граф как JSON</button>
+
+            <form action="#" id="formForGraphImport">
+                <p>Загрузить граф как JSON</p>
+                <label for="inputForGraphImport">Файл в формате JSON:</label>
+                <input type="file" name="file" accept="application/json" id="inputForGraphImport">
+                <input type="submit" value="Загрузить">
+            </form>
+        </div>
+
         <h2>Матрица смежности</h2>
         <table border="1" cellspacing="1" cellpadding="1" id="adjacencyMatrixTable">
         </table>

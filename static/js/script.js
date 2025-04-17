@@ -34,6 +34,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const formForAddVertex = document.getElementById("formForAddVertex");
     const inputForAddVertex = document.getElementById("inputForAddVertex");
 
+    const buttonForGraphExport = document.getElementById(
+        "buttonForGraphExport"
+    );
+    const formForGraphImport = document.getElementById("formForGraphImport");
+    const inputForGraphImport = document.getElementById("inputForGraphImport");
+
     const stage = new Konva.Stage({
         container: "graphContainer",
         width: width,
@@ -186,21 +192,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    function addEdge(startVertexKonva, endVertexKonva) {
-        const startVertex = vertices.find(
-            (v) => v.konvaObject === startVertexKonva
-        );
-        const endVertex = vertices.find(
-            (v) => v.konvaObject === endVertexKonva
-        );
+    function addEdgeFromVertexIndices(startVertexIndex, endVertexIndex) {
+        const startVertex = vertices[startVertexIndex];
+        const endVertex = vertices[endVertexIndex];
 
-        if (!startVertex || !endVertex) {
-            // Vertices must exist
-            console.warn(
-                "Something went wrong, can't find start or end vertex"
-            );
-            return;
-        }
         const edgeLine = new Konva.Line({
             points: [startVertex.x, startVertex.y, endVertex.x, endVertex.y],
             stroke: "red",
@@ -228,6 +223,25 @@ document.addEventListener("DOMContentLoaded", () => {
         edgeLine.moveToBottom(); // Keep edges behind vertices
         layer.draw();
         updateAdjacencyMatrix();
+    }
+
+    function addEdge(startVertexKonva, endVertexKonva) {
+        const startVertexIndex = vertices.findIndex(
+            (v) => v.konvaObject === startVertexKonva
+        );
+        const endVertexIndex = vertices.findIndex(
+            (v) => v.konvaObject === endVertexKonva
+        );
+
+        if (endVertexIndex === -1 || startVertexIndex === -1) {
+            // Vertices must exist
+            console.warn(
+                "Something went wrong, can't find start or end vertex"
+            );
+            return;
+        }
+
+        addEdgeFromVertexIndices(startVertexIndex, endVertexIndex);
     }
 
     function updateEdges() {
@@ -322,5 +336,152 @@ document.addEventListener("DOMContentLoaded", () => {
             matrixString = "Empty";
         }
         adjacencyMatrixTable.innerHTML = matrixString;
+    }
+
+    // --- Exporting graph as JSON ---
+    buttonForGraphExport.addEventListener("click", () => {
+        const dataString = JSON.stringify(collectGraphInfo());
+        download("graph.json", dataString);
+    });
+
+    function collectGraphInfo() {
+        return {
+            adjacencyMatrix: adjacencyMatrix,
+            vertices: vertices.map((v) => {
+                return { x: v.x, y: v.y, label: v.label };
+            }),
+        };
+    }
+
+    // -- Importing graph as JSON ---
+    formForGraphImport.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const file = inputForGraphImport.files[0];
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            let contents = e.target.result;
+            let graphData = JSON.parse(contents);
+            buildGraph(graphData);
+        };
+        reader.readAsText(file);
+    });
+
+    async function buildGraph(graphData) {
+        if (graphData.adjacencyMatrix === undefined) {
+            console.warn("No adjacency matrix");
+        }
+
+        if (graphData.vertices === undefined) {
+            graphData.vertices = await fetchVertexPositions(
+                graphData.adjacencyMatrix
+            );
+            console.log(graphData.vertices);
+        } else {
+            const len1 = graphData.adjacencyMatrix.length;
+            const len2 = graphData.adjacencyMatrix[0].length;
+            if (len1 !== len2 || len2 !== graphData.vertices.length) {
+                console.warn(
+                    "Graph data has invalid shapes of adjacency matrix and vertices"
+                );
+                return;
+            }
+        }
+        for (let i = 0; i < vertices.length; i++) {
+            vertices[i].konvaObject.destroy();
+        }
+        for (let i = 0; i < edges.length; i++) {
+            edges[i].konvaObject.destroy();
+        }
+        vertices = [];
+        for (let i = 0; i < graphData.vertices.length; i++) {
+            let vertexData = graphData.vertices[i];
+            addVertex(vertexData.x, vertexData.y, vertexData.label);
+        }
+
+        for (let i = 0; i < vertices.length; i++) {
+            for (let j = i + 1; j < vertices.length; j++) {
+                if (graphData.adjacencyMatrix[i][j] == 1) {
+                    addEdgeFromVertexIndices(i, j);
+                }
+            }
+        }
+
+        updateAdjacencyMatrix();
+        inputForAddVertex.placeholder = `${vertices.length + 1}`;
+    }
+
+    function download(filename, text) {
+        var element = document.createElement("a");
+        element.setAttribute(
+            "href",
+            "data:text/plain;charset=utf-8," + encodeURIComponent(text)
+        );
+        element.setAttribute("download", filename);
+
+        element.style.display = "none";
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
+    }
+
+    async function fetchVertexPositions(adjacencyMatrix) {
+        console.log(JSON.stringify({ adjacency_matrix: adjacencyMatrix }));
+        const resp = await fetch("/api/v1/positions", {
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            method: "POST",
+            body: JSON.stringify({ adjacency_matrix: adjacencyMatrix }),
+        });
+        let responseBody = await resp.json();
+
+        if (responseBody["status"] !== "ok") {
+            console.warn(responseBody["data"]["message"]);
+            return;
+        }
+
+        let positions = responseBody.data.positions;
+
+        let min_x = positions[0][0];
+        let max_x = min_x;
+        let min_y = positions[0][1];
+        let max_y = min_y;
+
+        for (let i = 1; i < positions.length; i++) {
+            if (positions[i][0] < min_x) {
+                min_x = positions[i][0];
+            }
+            if (positions[i][1] < min_y) {
+                min_y = positions[i][1];
+            }
+            if (positions[i][0] > max_x) {
+                max_x = positions[i][0];
+            }
+            if (positions[i][1] > max_y) {
+                max_y = positions[i][1];
+            }
+        }
+
+        // now min coordinate goes to 10% of canvas, max - to 90%
+        const width_80 = width * 0.8;
+        const width_10 = width * 0.1;
+        const height_80 = height * 0.8;
+        const height_10 = height * 0.1;
+
+        let vertices = [];
+        for (let i = 0; i < positions.length; i++) {
+            let x =
+                ((positions[i][0] - min_x) / (max_x - min_x)) * width_80 +
+                width_10;
+            let y =
+                ((positions[i][1] - min_y) / (max_y - min_y)) * height_80 +
+                height_10;
+            vertices.push({ x: x, y: y, label: `${i + 1}` });
+        }
+
+        return vertices;
     }
 });
