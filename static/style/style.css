@@ -1,8 +1,12 @@
+body {
+    background-color: #f3f4f7;
+}
+
 #graphContainer {
     width: 800px;
     height: 600px;
     border: 1px solid black;
-    margin: 20px;
+    margin-top: 10px;
 }
 
 #adjacencyMatrixTable {
@@ -12,6 +16,10 @@
 .container {
     width: 80%;
     margin: 0 auto;
+}
+
+.left, .right {
+    margin: 0 10px;
 }
 
 .main {
