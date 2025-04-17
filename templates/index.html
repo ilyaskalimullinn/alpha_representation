@@ -1,47 +1,85 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Раскраски Тейта</title>
-    <link rel="stylesheet" href="/static/style/style.css">
-    <script src="https://unpkg.com/konva@9/konva.min.js"></script> <!-- Konva.js Library -->
-</head>
-<body>
-    <div class="container">
-        <h1>Раскраски Тейта</h1>
-        
-        <div id="graphContainer">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Раскраски Тейта</title>
+        <link rel="stylesheet" href="/static/style/style.css" />
+        <script src="/static/js/konva.min.js"></script>
+        <!-- Konva.js Library -->
+    </head>
+    <body>
+        <div class="container">
+            <h1>Раскраски Тейта</h1>
+            <main class="main">
+                <div class="left">
+                    <div id="graphContainer"></div>
+                </div>
+                <div class="right">
+                    <div class="block">
+                        <form action="#" id="formForAddVertex">
+                            <h3>Добавить вершину</h3>
+                            <label for="inputForAddVertex">Метка вершины</label>
+                            <input
+                                type="text"
+                                id="inputForAddVertex"
+                                placeholder="1"
+                            />
+                            <input type="submit" value="Добавить" />
+                        </form>
+                    </div>
 
+                    <div class="block">
+                        <h3>Добавить ребро</h3>
+                        <button id="buttonForAddEdge">Добавить ребро</button>
+                    </div>
+
+                    <div class="block">
+                        <h3>Удаление</h3>
+                        <button id="buttonForDeleteVertex">
+                            Удалить вершину
+                        </button>
+                        <button id="buttonForDeleteEdge">Удалить ребро</button>
+                    </div>
+
+                    <div class="block fileControl">
+                        <h3>Управление файлами</h3>
+                        <button id="buttonForGraphExport">
+                            Экспортировать граф как JSON
+                        </button>
+
+                        <form action="#" id="formForGraphImport">
+                            <p>Загрузить граф как JSON</p>
+                            <label for="inputForGraphImport"
+                                >Файл в формате JSON:</label
+                            >
+                            <input
+                                type="file"
+                                name="file"
+                                accept="application/json"
+                                id="inputForGraphImport"
+                            />
+                            <input type="submit" value="Загрузить" />
+                        </form>
+                    </div>
+
+                    <div class="block facesControl">
+                        <h3>Грани графа</h3>
+                        <button id="buttonForFindingFaces">Найти грани</button>
+                    </div>
+
+                    <div class="block">
+                        <h3>Матрица смежности</h3>
+                        <table
+                            border="1"
+                            cellspacing="1"
+                            cellpadding="1"
+                            id="adjacencyMatrixTable"
+                        ></table>
+                    </div>
+                </div>
+            </main>
         </div>
-
-        <form action="#" id="formForAddVertex">
-            <p>Добавить вершину</p>
-            <label for="inputForAddVertex">Метка вершины</label>
-            <input type="text" id="inputForAddVertex" placeholder="1">
-            <input type="submit" value="Добавить">
-        </form>
-
-        <button id="buttonForDeleteVertex">Удалить вершину</button>
-        <button id="buttonForAddEdge">Добавить ребро</button>
-        <button id="buttonForDeleteEdge">Удалить ребро</button>
-
-        <div class="fileControl">
-            <h2>Управление файлами</h2>
-            <button id="buttonForGraphExport">Экспортировать граф как JSON</button>
-
-            <form action="#" id="formForGraphImport">
-                <p>Загрузить граф как JSON</p>
-                <label for="inputForGraphImport">Файл в формате JSON:</label>
-                <input type="file" name="file" accept="application/json" id="inputForGraphImport">
-                <input type="submit" value="Загрузить">
-            </form>
-        </div>
-
-        <h2>Матрица смежности</h2>
-        <table border="1" cellspacing="1" cellpadding="1" id="adjacencyMatrixTable">
-        </table>
-    </div>
-    <script src="/static/js/script.js"></script>
-</body>
+        <script src="/static/js/script.js"></script>
+    </body>
 </html>

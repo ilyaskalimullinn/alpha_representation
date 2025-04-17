@@ -8,3 +8,20 @@
 #adjacencyMatrixTable {
     margin-left: 20px;
 }
+
+.container {
+    width: 80%;
+    margin: 0 auto;
+}
+
+.main {
+    display: flex;
+    flex-direction: row;
+}
+
+.block {
+    border: 1px solid black;
+    border-radius: 5px;
+    margin: 10px 0;
+    padding: 10px;
+}
