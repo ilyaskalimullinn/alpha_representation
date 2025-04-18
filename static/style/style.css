@@ -33,3 +33,16 @@ body {
     margin: 10px 0;
     padding: 10px;
 }
+
+#facesListUl {
+    font-size: 20px;
+}
+
+#facesListUl li {
+    margin: 5px 0;
+}
+
+#facesListUl li:hover {
+    background-color: lightgrey;
+    transition: .2s;
+}

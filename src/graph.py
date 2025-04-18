@@ -106,7 +106,7 @@ def calc_angle(vec1: List[float], vec2: List[float]) -> float:
         vec2 (List[float]): other vector
 
     Returns:
-        float: angle from 0 to 2 \pi
+        float: angle from 0 to 2 pi
     """
     vec1 = vec1 / np.linalg.norm(vec1)
     vec2 = vec2 / np.linalg.norm(vec2)
@@ -128,7 +128,7 @@ def calc_rotation(pos0: List[float], pos1: List[float], pos2: List[float]) -> fl
         pos2 (List[float]): next point
 
     Returns:
-        float: angle from 0 to 2 \pi
+        float: angle from 0 to 2 pi
     """
     main_vector = [pos0[0] - pos1[0], pos0[1] - pos1[1]]
     new_vector = [pos2[0] - pos1[0], pos2[1] - pos1[1]]

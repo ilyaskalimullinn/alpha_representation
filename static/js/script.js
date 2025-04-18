@@ -15,7 +15,13 @@ class Edge {
     }
 }
 
-class Face {}
+class Face {
+    constructor(vertices, edges, label) {
+        this.vertices = vertices;
+        this.edges = edges;
+        this.label = label;
+    }
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     // --- Konva Setup ---
@@ -36,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const buttonForFindingFaces = document.getElementById(
         "buttonForFindingFaces"
     );
+    const facesListUl = document.getElementById("facesListUl");
 
     const buttonForGraphExport = document.getElementById(
         "buttonForGraphExport"
@@ -119,6 +126,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         layer.add(vertexGroup);
         layer.draw();
+        inputForAddVertex.setAttribute("placeholder", `${vertices.length + 1}`);
+        inputForAddVertex.value = "";
+        updateAdjacencyMatrix();
+        updateFaces([]);
     }
 
     formForAddVertex.addEventListener("submit", (e) => {
@@ -130,9 +141,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         addVertex(width / 2, height / 2, vertexLabel);
-        inputForAddVertex.setAttribute("placeholder", `${vertices.length + 1}`);
-        inputForAddVertex.value = "";
-        updateAdjacencyMatrix();
     });
 
     function updateVertexPosition(vertexGroup) {
@@ -184,6 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         updateAdjacencyMatrix();
         layer.draw();
+        updateFaces([]);
     }
 
     // --- Edge creation ---
@@ -229,6 +238,7 @@ document.addEventListener("DOMContentLoaded", () => {
         edgeLine.moveToBottom(); // Keep edges behind vertices
         layer.draw();
         updateAdjacencyMatrix();
+        updateFaces([]);
     }
 
     function addEdge(startVertexKonva, endVertexKonva) {
@@ -293,6 +303,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         updateAdjacencyMatrix();
         layer.draw();
+        updateFaces([]);
     }
 
     // --- Adjacency Matrix ---
@@ -414,11 +425,73 @@ document.addEventListener("DOMContentLoaded", () => {
 
         updateAdjacencyMatrix();
         inputForAddVertex.placeholder = `${vertices.length + 1}`;
+        updateFaces([]);
     }
 
-    // --- Finding faces
+    // --- Finding faces ---
     async function findFaces() {
-        let faceData = await fetchFaceData();
+        let facesList = await fetchFaceData();
+        updateFaces(facesList);
+    }
+
+    function updateFaces(facesList) {
+        faces = [];
+        let facesHtml = "";
+        for (let i = 0; i < facesList.length; i++) {
+            let vList = [];
+            let vLabelList = [];
+            for (let vIndex of facesList[i]) {
+                vList.push(vertices[vIndex]);
+                vLabelList.push(vertices[vIndex].label);
+            }
+
+            let edgeList = [];
+            for (let vIndex = 0; vIndex < facesList[i].length - 1; vIndex++) {
+                let v1 = vList[vIndex];
+                let v2 = vList[vIndex + 1];
+                let edgeIndex = edges.findIndex((e) => {
+                    return (
+                        (e.startVertex == v1 && e.endVertex == v2) ||
+                        (e.startVertex == v2 && e.endVertex == v1)
+                    );
+                });
+                if (edgeIndex === -1) {
+                    console.warn("Could not find edge");
+                    return [];
+                }
+                edgeList.push(edges[edgeIndex]);
+            }
+            let face = new Face(vList, edgeList, `${i + 1}`);
+            faces.push(face);
+            facesHtml += `<li>(${face.label}): ${vLabelList}</li>`;
+        }
+
+        facesListUl.innerHTML = facesHtml;
+
+        for (let i = 0; i < facesListUl.childNodes.length; i++) {
+            let li = facesListUl.childNodes[i];
+            let face = faces[i];
+            li.addEventListener("mouseover", () => {
+                for (let v of face.vertices) {
+                    v.konvaObject.children[0].strokeWidth(4);
+                }
+                for (let e of face.edges) {
+                    e.konvaObject.strokeWidth(5);
+                    e.konvaObject.stroke("blue");
+                }
+                document.body.style.cursor = "pointer";
+            });
+            li.addEventListener("mouseout", () => {
+                for (let v of face.vertices) {
+                    v.konvaObject.children[0].strokeWidth(2);
+                }
+                for (let e of face.edges) {
+                    e.konvaObject.strokeWidth(3);
+                    e.konvaObject.stroke("red");
+                }
+                document.body.style.cursor = "default";
+            });
+        }
     }
 
     buttonForFindingFaces.addEventListener("click", () => {
@@ -440,6 +513,14 @@ document.addEventListener("DOMContentLoaded", () => {
         element.click();
 
         document.body.removeChild(element);
+    }
+
+    function getVertexPositionsList() {
+        let positions = [];
+        for (let i = 0; i < vertices.length; i++) {
+            positions.push([vertices[i].x, vertices[i].y]);
+        }
+        return positions;
     }
 
     // --- Fetching from backend ---
@@ -503,6 +584,26 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function fetchFaceData() {
-        let resp = await fetch("/api/v1/find_faces");
+        let resp = await fetch("/api/v1/find_faces", {
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            method: "POST",
+            body: JSON.stringify({
+                adjacency_matrix: adjacencyMatrix,
+                positions: getVertexPositionsList(),
+            }),
+        });
+        if (!resp.ok) {
+            console.warn("Ошибка при нахождении граней");
+            return [];
+        }
+        resp = await resp.json();
+        if (resp["status"] !== "ok") {
+            console.warn("Ошибка при нахождении граней");
+            return [];
+        }
+        return resp["data"]["faces"];
     }
 });
