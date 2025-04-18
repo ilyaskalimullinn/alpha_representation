@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
-from src.graph import calc_vertex_positions, find_faces_in_graph
+from src.graph import calc_vertex_positions, find_faces_in_graph, build_faces_matrix
 
 
 class PositionsRequest(BaseModel):
@@ -20,6 +20,10 @@ class PositionsRequest(BaseModel):
 class FacesRequest(BaseModel):
     adjacency_matrix: List[List[int]]
     positions: List[List[float]]
+
+
+class FacesMatrixRequest(BaseModel):
+    faces: List[List[int]]
 
 
 BASE_DIR = pathlib.Path(os.path.abspath(__file__)).parent.parent
@@ -62,4 +66,9 @@ async def find_faces(request: FacesRequest):
     positions = request.positions
     faces = find_faces_in_graph(adjacency_matrix, positions)
     return {"status": "ok", "data": {"faces": faces}}
-    # faces = find_faces
+
+
+@app.post("/api/v1/find_faces_matrix")
+async def find_faces_matrix(request: FacesMatrixRequest):
+    faces_matrix = build_faces_matrix(request.faces)
+    return {"status": "ok", "data": {"faces_matrix": faces_matrix}}

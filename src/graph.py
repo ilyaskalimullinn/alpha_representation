@@ -60,8 +60,6 @@ def find_faces_in_graph(
                 next_neighbor_index = neighbors_counterclockwise[0]
                 face.append(next_neighbor_index)
             adjacency_matrix[face[-2]][face[-1]] = 0
-            print(face)
-            [print(row) for row in adjacency_matrix]
             faces.append(face)
     return faces
 
@@ -133,3 +131,17 @@ def calc_rotation(pos0: List[float], pos1: List[float], pos2: List[float]) -> fl
     main_vector = [pos0[0] - pos1[0], pos0[1] - pos1[1]]
     new_vector = [pos2[0] - pos1[0], pos2[1] - pos1[1]]
     return calc_angle(main_vector, new_vector)
+
+
+def build_faces_matrix(faces: List[List[int]]) -> List[List[List[int]]]:
+    n_faces = len(faces)
+    matrix = [[None for _ in range(n_faces)] for _ in range(n_faces)]
+    for i, face in enumerate(faces):
+        matrix[i][i] = sorted(list(set(face)))
+    for i in range(n_faces):
+        for j in range(i + 1, n_faces):
+            v = set(faces[i]).intersection(faces[j])
+            v = sorted(list(v))
+            matrix[i][j] = v
+            matrix[j][i] = v
+    return matrix

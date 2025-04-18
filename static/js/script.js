@@ -50,6 +50,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const formForGraphImport = document.getElementById("formForGraphImport");
     const inputForGraphImport = document.getElementById("inputForGraphImport");
 
+    const buttonForFacesMatrix = document.getElementById(
+        "buttonForFacesMatrix"
+    );
+    const facesMatrixTable = document.getElementById("facesMatrixTable");
+
     const stage = new Konva.Stage({
         container: "graphContainer",
         width: width,
@@ -66,12 +71,11 @@ document.addEventListener("DOMContentLoaded", () => {
     let edges = []; // Array to store edge objects (with start, end, konva object)
     let adjacencyMatrix = []; // 2D array representing connections
     let faces = [];
+    let facesMatrix = [];
 
     // --- Modes ---
     let mode = "normal"; // 'normal', 'addEdgeStart', 'deleteVertex', 'deleteEdge', 'addFace'
     let edgeStartVertex = null; // Vertex where edge creation starts
-    let selectedVertex = null; // Currently selected vertex (for deletion)
-    let selectedEdge = null; // Currently selected edge (for deletion)
 
     // --- Vertex creation ---
     function addVertex(x, y, label) {
@@ -350,7 +354,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 matrixString += "</tr>";
             }
         } else {
-            matrixString = "Empty";
+            matrixString = "";
         }
         adjacencyMatrixTable.innerHTML = matrixString;
     }
@@ -498,6 +502,181 @@ document.addEventListener("DOMContentLoaded", () => {
         findFaces();
     });
 
+    buttonForFacesMatrix.addEventListener("click", () => {
+        findFacesMatrix();
+    });
+
+    async function findFacesMatrix() {
+        if (faces.length === 0) {
+            await findFaces();
+        }
+        let facesMatrixData = await fetchFacesMatrix();
+        updateFacesMatrix(facesMatrixData);
+    }
+
+    function updateFacesMatrix(facesMatrixData) {
+        facesMatrix = facesMatrixData;
+        console.log(JSON.stringify(facesMatrix));
+        displayFacesMatrix();
+    }
+
+    // function displayFacesMatrix() {
+    //     let matrixString = "";
+
+    //     if (facesMatrix.length > 0) {
+    //         // first row is faces labels
+    //         const n = faces.length;
+    //         matrixString += "<tr>";
+    //         matrixString += "<th>Грань</th>";
+    //         for (let i = 0; i < n; i++) {
+    //             matrixString += `<th>${faces[i].label}</th>`;
+    //         }
+    //         matrixString += "</tr>";
+
+    //         for (let i = 0; i < n; i++) {
+    //             matrixString += "<tr>";
+
+    //             matrixString += `<td>${faces[i].label}</td>`;
+
+    //             for (let j = 0; j < n; j++) {
+    //                 matrixString += "<td>";
+
+    //                 let valueInCell = "";
+    //                 if (facesMatrix[i][j].length === 0) {
+    //                     valueInCell = "0";
+    //                 } else {
+    //                     for (let vertexIndex of facesMatrix[i][j]) {
+    //                         valueInCell += `&sigma;(${vertices[vertexIndex].label})+`;
+    //                     }
+    //                     valueInCell = valueInCell.substring(
+    //                         0,
+    //                         valueInCell.length - 1
+    //                     );
+    //                 }
+
+    //                 matrixString += valueInCell;
+    //                 matrixString += "</td>";
+
+    //                 // matrixString += `<td>${adjacencyMatrix[i][j]}</td>`;
+    //             }
+
+    //             matrixString += "</tr>";
+    //         }
+    //     } else {
+    //         matrixString = "";
+    //     }
+    //     facesMatrixTable.innerHTML = matrixString;
+    // }
+    function displayFacesMatrix() {
+        facesMatrixTable.innerHTML = "";
+        if (facesMatrix.length === 0) {
+            return;
+        }
+
+        function vetexIndicesToSigma(vertexList) {
+            if (vertexList.length === 0) {
+                return "0";
+            }
+            let s = "";
+            for (let vertexIndex of vertexList) {
+                s += `&sigma;(${vertices[vertexIndex].label})+`;
+            }
+            s = s.substring(0, s.length - 1);
+            return s;
+        }
+
+        function addCellEventListeners(th, ...faceIndices) {
+            for (let faceIndex of faceIndices) {
+                let face = faces[faceIndex];
+                th.addEventListener("mouseover", () => {
+                    for (let v of face.vertices) {
+                        v.konvaObject.children[0].strokeWidth(4);
+                    }
+                    for (let e of face.edges) {
+                        e.konvaObject.strokeWidth(5);
+                        e.konvaObject.stroke("blue");
+                    }
+                    document.body.style.cursor = "pointer";
+                });
+                th.addEventListener("mouseout", () => {
+                    for (let v of face.vertices) {
+                        v.konvaObject.children[0].strokeWidth(2);
+                    }
+                    for (let e of face.edges) {
+                        e.konvaObject.strokeWidth(3);
+                        e.konvaObject.stroke("red");
+                    }
+                    document.body.style.cursor = "default";
+                });
+            }
+        }
+
+        const n = faces.length;
+
+        // first row is faces labels
+        let row = document.createElement("tr");
+        facesMatrixTable.appendChild(row);
+
+        let th = document.createElement("th");
+        th.innerText = "Грань";
+        row.appendChild(th);
+
+        for (let i = 0; i < n; i++) {
+            let th = document.createElement("th");
+            th.innerText = faces[i].label;
+            row.appendChild(th);
+            addCellEventListeners(th, i);
+        }
+
+        for (let i = 0; i < n; i++) {
+            row = document.createElement("tr");
+            facesMatrixTable.appendChild(row);
+
+            th = document.createElement("th");
+            th.innerText = faces[i].label;
+            row.appendChild(th);
+            addCellEventListeners(th, i);
+
+            for (j = 0; j < n; j++) {
+                th = document.createElement("th");
+                th.innerHTML = vetexIndicesToSigma(facesMatrix[i][j]);
+                row.appendChild(th);
+
+                addCellEventListeners(th, i, j);
+            }
+        }
+
+        // for (let i = 0; i < n; i++) {
+        //     matrixString += "<tr>";
+
+        //     matrixString += `<td>${faces[i].label}</td>`;
+
+        //     for (let j = 0; j < n; j++) {
+        //         matrixString += "<td>";
+
+        //         let valueInCell = "";
+        //         if (facesMatrix[i][j].length === 0) {
+        //             valueInCell = "0";
+        //         } else {
+        //             for (let vertexIndex of facesMatrix[i][j]) {
+        //                 valueInCell += `&sigma;(${vertices[vertexIndex].label})+`;
+        //             }
+        //             valueInCell = valueInCell.substring(
+        //                 0,
+        //                 valueInCell.length - 1
+        //             );
+        //         }
+
+        //         matrixString += valueInCell;
+        //         matrixString += "</td>";
+
+        //         // matrixString += `<td>${adjacencyMatrix[i][j]}</td>`;
+        //     }
+
+        //     matrixString += "</tr>";
+        // }
+    }
+
     // --- Utils ---
     function download(filename, text) {
         var element = document.createElement("a");
@@ -605,5 +784,33 @@ document.addEventListener("DOMContentLoaded", () => {
             return [];
         }
         return resp["data"]["faces"];
+    }
+
+    async function fetchFacesMatrix() {
+        let facesData = [];
+        for (let face of faces) {
+            let v = face.vertices.map((v) => vertices.indexOf(v));
+            facesData.push(v);
+        }
+        let resp = await fetch("/api/v1/find_faces_matrix", {
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            method: "POST",
+            body: JSON.stringify({
+                faces: facesData,
+            }),
+        });
+        if (!resp.ok) {
+            console.warn("Ошибка при нахождении матрицы граней");
+            return [];
+        }
+        resp = await resp.json();
+        if (resp["status"] !== "ok") {
+            console.warn("Ошибка при нахождении матрицы граней");
+            return [];
+        }
+        return resp["data"]["faces_matrix"];
     }
 });

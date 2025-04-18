@@ -18,13 +18,17 @@ body {
     margin: 0 auto;
 }
 
-.left, .right {
+section {
     margin: 0 10px;
 }
 
-.main {
+.top {
     display: flex;
     flex-direction: row;
+}
+.right {
+    margin-left: 20px;
+    max-width: 30%;
 }
 
 .block {
@@ -43,6 +47,11 @@ body {
 }
 
 #facesListUl li:hover {
+    background-color: lightgrey;
+    transition: .2s;
+}
+
+#facesMatrixTable th:hover {
     background-color: lightgrey;
     transition: .2s;
 }
