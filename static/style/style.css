@@ -4,7 +4,7 @@ body {
 
 #graphContainer {
     width: 800px;
-    height: 600px;
+    height: 500px;
     border: 1px solid black;
     margin-top: 10px;
 }
@@ -14,7 +14,7 @@ body {
 }
 
 .container {
-    width: 80%;
+    width: 90%;
     margin: 0 auto;
 }
 
@@ -28,7 +28,6 @@ section {
 }
 .right {
     margin-left: 20px;
-    max-width: 30%;
 }
 
 .block {
