@@ -17,17 +17,12 @@
                         <div id="graphContainer"></div>
                     </div>
                     <div class="right">
-                        <div class="block">
-                            <h3>Матрица смежности</h3>
-                            <table
-                                border="1"
-                                cellspacing="1"
-                                cellpadding="1"
-                                id="adjacencyMatrixTable"
-                            ></table>
-                        </div>
-                        <div class="block">
-                            <form action="#" id="formForAddVertex">
+                        <div class="block matrixControl">
+                            <form
+                                action="#"
+                                class="block"
+                                id="formForAddVertex"
+                            >
                                 <h3>Добавить вершину</h3>
                                 <label for="inputForAddVertex"
                                     >Метка вершины</label
@@ -39,23 +34,33 @@
                                 />
                                 <input type="submit" value="Добавить" />
                             </form>
+
+                            <div class="block">
+                                <!-- <h3>Добавить ребро</h3> -->
+                                <button id="buttonForAddEdge">
+                                    Добавить ребро
+                                </button>
+                                <!-- </div> -->
+
+                                <!-- <div class="block"> -->
+                                <!-- <h3>Удаление</h3> -->
+                                <button id="buttonForDeleteVertex">
+                                    Удалить вершину
+                                </button>
+                                <button id="buttonForDeleteEdge">
+                                    Удалить ребро
+                                </button>
+                            </div>
                         </div>
 
                         <div class="block">
-                            <h3>Добавить ребро</h3>
-                            <button id="buttonForAddEdge">
-                                Добавить ребро
-                            </button>
-                        </div>
-
-                        <div class="block">
-                            <h3>Удаление</h3>
-                            <button id="buttonForDeleteVertex">
-                                Удалить вершину
-                            </button>
-                            <button id="buttonForDeleteEdge">
-                                Удалить ребро
-                            </button>
+                            <h3>Матрица смежности</h3>
+                            <table
+                                border="1"
+                                cellspacing="1"
+                                cellpadding="1"
+                                id="adjacencyMatrixTable"
+                            ></table>
                         </div>
                     </div>
                 </section>

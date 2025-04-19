@@ -38,6 +38,15 @@ section {
     padding: 10px;
 }
 
+.matrixControl {
+    display: flex;
+    flex-direction: row;
+}
+
+#formForAddVertex {
+    margin-right: 5px;
+}
+
 #facesListUl {
     font-size: 20px;
 }

@@ -80,20 +80,24 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- Vertex creation ---
     function addVertex(x, y, label) {
         const vertexCircle = new Konva.Circle({
-            radius: 20,
+            radius: 15,
             fill: "lightblue",
             stroke: "black",
             strokeWidth: 2,
         });
         const vertexText = new Konva.Text({
+            x: -6,
+            y: 5,
             text: label,
             width: 40,
-            fontSize: 20,
+            fontSize: 15,
             scaleY: -1,
         });
         const vertexGroup = new Konva.Group({ x: x, y: y, draggable: true });
         vertexGroup.add(vertexCircle);
         vertexGroup.add(vertexText);
+        // vertexText.x(-5);
+        // console.log(vertexText.x());
 
         const vertex = new Vertex(label, x, y, vertexGroup);
         vertices.push(vertex);
@@ -440,6 +444,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateFaces(facesList) {
         faces = [];
+        updateFacesMatrix([]);
         let facesHtml = "";
         for (let i = 0; i < facesList.length; i++) {
             let vList = [];
@@ -520,53 +525,6 @@ document.addEventListener("DOMContentLoaded", () => {
         displayFacesMatrix();
     }
 
-    // function displayFacesMatrix() {
-    //     let matrixString = "";
-
-    //     if (facesMatrix.length > 0) {
-    //         // first row is faces labels
-    //         const n = faces.length;
-    //         matrixString += "<tr>";
-    //         matrixString += "<th>Грань</th>";
-    //         for (let i = 0; i < n; i++) {
-    //             matrixString += `<th>${faces[i].label}</th>`;
-    //         }
-    //         matrixString += "</tr>";
-
-    //         for (let i = 0; i < n; i++) {
-    //             matrixString += "<tr>";
-
-    //             matrixString += `<td>${faces[i].label}</td>`;
-
-    //             for (let j = 0; j < n; j++) {
-    //                 matrixString += "<td>";
-
-    //                 let valueInCell = "";
-    //                 if (facesMatrix[i][j].length === 0) {
-    //                     valueInCell = "0";
-    //                 } else {
-    //                     for (let vertexIndex of facesMatrix[i][j]) {
-    //                         valueInCell += `&sigma;(${vertices[vertexIndex].label})+`;
-    //                     }
-    //                     valueInCell = valueInCell.substring(
-    //                         0,
-    //                         valueInCell.length - 1
-    //                     );
-    //                 }
-
-    //                 matrixString += valueInCell;
-    //                 matrixString += "</td>";
-
-    //                 // matrixString += `<td>${adjacencyMatrix[i][j]}</td>`;
-    //             }
-
-    //             matrixString += "</tr>";
-    //         }
-    //     } else {
-    //         matrixString = "";
-    //     }
-    //     facesMatrixTable.innerHTML = matrixString;
-    // }
     function displayFacesMatrix() {
         facesMatrixTable.innerHTML = "";
         if (facesMatrix.length === 0) {
@@ -645,36 +603,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 addCellEventListeners(th, i, j);
             }
         }
-
-        // for (let i = 0; i < n; i++) {
-        //     matrixString += "<tr>";
-
-        //     matrixString += `<td>${faces[i].label}</td>`;
-
-        //     for (let j = 0; j < n; j++) {
-        //         matrixString += "<td>";
-
-        //         let valueInCell = "";
-        //         if (facesMatrix[i][j].length === 0) {
-        //             valueInCell = "0";
-        //         } else {
-        //             for (let vertexIndex of facesMatrix[i][j]) {
-        //                 valueInCell += `&sigma;(${vertices[vertexIndex].label})+`;
-        //             }
-        //             valueInCell = valueInCell.substring(
-        //                 0,
-        //                 valueInCell.length - 1
-        //             );
-        //         }
-
-        //         matrixString += valueInCell;
-        //         matrixString += "</td>";
-
-        //         // matrixString += `<td>${adjacencyMatrix[i][j]}</td>`;
-        //     }
-
-        //     matrixString += "</tr>";
-        // }
     }
 
     // --- Utils ---
