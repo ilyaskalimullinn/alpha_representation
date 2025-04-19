@@ -1,8 +1,14 @@
-from typing import List
+from typing import List, Tuple
 import math
+import itertools
+import fractions
 
 import numpy as np
 import networkx as nx
+import sympy
+
+
+i_div_sqrt_3 = sympy.I / sympy.sqrt(3)
 
 
 def calc_vertex_positions(adjacency_matrix: List[List[int]]) -> List[List[float]]:
@@ -145,3 +151,139 @@ def build_faces_matrix(faces: List[List[int]]) -> List[List[List[int]]]:
             matrix[i][j] = v
             matrix[j][i] = v
     return matrix
+
+
+def largest_nonzero_principal_minor(matrix: np.ndarray) -> Tuple[int, int]:
+    n = matrix.shape[0]
+
+    # Определитель матрицы граней всегда равен нулю, уменьшаем размер матрицы
+    for rank in range(n - 1, 0, -1):
+        # Генерируем все возможные комбинации строк и столбцов для минора размера rank
+        for rows in itertools.combinations(range(n), rank):
+            # Создаем минор
+            minor = matrix[np.ix_(rows, rows)]
+            # minor = matrix[rows, rows]
+            # Проверяем определитель минора
+            det_minor = int(round(np.linalg.det(minor))) % 3
+            if det_minor != 0:
+                if det_minor == 2:
+                    det_minor = -1
+                return det_minor, rank
+    return 0, 0
+
+
+def gaussian_sum(matrix: np.ndarray) -> Tuple[sympy.Basic, int, int]:
+    det_minor, rank = largest_nonzero_principal_minor(matrix)
+    if rank == 0:
+        return 1, det_minor, rank
+    return det_minor * (i_div_sqrt_3**rank), det_minor, rank
+
+
+def calc_tait_0_in_detail(
+    faces_matrix: List[List[List[int]]],
+) -> Tuple[int, List[int], List[int]]:
+    n_faces = len(faces_matrix)  # n + 2
+    n_vertices = 2 * (n_faces - 2)  # 2n
+    # masks = [ for v in range(n_vertices)]
+    masks = np.zeros((n_vertices, n_faces, n_faces))
+    for v in range(n_vertices):
+        for f1 in range(n_faces):
+            for f2 in range(f1, n_faces):
+                if v in faces_matrix[f1][f2]:
+                    masks[v][f1][f2] = 1
+                    masks[v][f2][f1] = 1
+    all_sigma = itertools.product([-1, 1], repeat=n_vertices)
+
+    n_tait_0 = 0
+    det_minor_list = []
+    rank_list = []
+
+    for sigma in all_sigma:
+        sigma = np.array(sigma).reshape(-1, 1, 1)
+        faces_matrix_filled = np.sum(masks * sigma, axis=0)
+        gauss, det_minor, rank = gaussian_sum(faces_matrix_filled)
+        n_tait_0 += gauss
+        det_minor_list.append(det_minor)
+        rank_list.append(rank)
+
+    n_tait_0 = sympy.nsimplify(n_tait_0)
+
+    assert isinstance(
+        n_tait_0, sympy.core.numbers.Integer
+    ), "Calculated sum of Tait colorings is not integer"
+
+    return int(n_tait_0), det_minor_list, rank_list
+
+
+def calc_tait_0_aggregated(
+    faces_matrix: List[List[List[int]]],
+) -> Tuple[int, List[int], List[int]]:
+    n_faces = len(faces_matrix)  # n + 2
+    n_vertices = 2 * (n_faces - 2)  # 2n
+    # masks = [ for v in range(n_vertices)]
+    masks = np.zeros((n_vertices, n_faces, n_faces))
+    for v in range(n_vertices):
+        for f1 in range(n_faces):
+            for f2 in range(f1, n_faces):
+                if v in faces_matrix[f1][f2]:
+                    masks[v][f1][f2] = 1
+                    masks[v][f2][f1] = 1
+    all_sigma = itertools.product([-1, 1], repeat=n_vertices)
+
+    n_tait_0 = 0
+
+    n_zero_ranks = 0
+    n_even_ranks = 0
+    n_odd_ranks = 0
+
+    rank_and_det_counts = {}
+
+    for sigma in all_sigma:
+        sigma = np.array(sigma).reshape(-1, 1, 1)
+        faces_matrix_filled = np.sum(masks * sigma, axis=0)
+        det_minor, rank = largest_nonzero_principal_minor(faces_matrix_filled)
+
+        if rank == 0:
+            n_tait_0 += 1
+            n_zero_ranks += 1
+            continue
+
+        if rank % 2 == 1:
+            n_odd_ranks += 1
+        else:
+            # rank is even, non-zero
+            n_even_ranks += 1
+            n_tait_0 += det_minor * (fractions.Fraction(-1, 3) ** (rank // 2))
+
+        rank_det_str = f"{rank},{det_minor}"
+        if rank_det_str in rank_and_det_counts:
+            rank_and_det_counts[rank_det_str] += 1
+        else:
+            rank_and_det_counts[rank_det_str] = 1
+
+    assert (
+        n_tait_0.numerator % n_tait_0.denominator == 0
+    ), "Calculated sum of Tait colorings is not integer"
+    n_tait_0 = int(n_tait_0)
+
+    return n_tait_0, rank_and_det_counts, n_even_ranks, n_odd_ranks, n_zero_ranks
+
+
+def calc_tait_0_dual_chromatic(faces_adjacency_matrix: List[List[int]]) -> int:
+    dual_graph = nx.from_numpy_array(np.array(faces_adjacency_matrix))
+    chromatic_polynomial = nx.chromatic_polynomial(dual_graph)
+    print(chromatic_polynomial)
+    val = int(chromatic_polynomial.subs({"x": 4}))
+    return val // 12
+
+
+def faces_matrix_to_adjacency_matrix(
+    faces_matrix: List[List[List[int]]],
+) -> List[List[int]]:
+    n = len(faces_matrix)
+    adjacency_matrix = [
+        [1 if len(faces_matrix[i][j]) > 0 else 0 for j in range(n)] for i in range(n)
+    ]
+    for i in range(n):
+        adjacency_matrix[i][i] = 0
+    return adjacency_matrix
