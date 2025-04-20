@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
-from src.graph import (
+from app.graph import (
     calc_vertex_positions,
     find_faces_in_graph,
     build_faces_matrix,
@@ -46,9 +46,9 @@ BASE_DIR = pathlib.Path(os.path.abspath(__file__)).parent.parent
 
 app = FastAPI()
 
-app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
+app.mount("/static", StaticFiles(directory=BASE_DIR / "build/static"), name="static")
 
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=BASE_DIR / "build/pages")
 
 
 # Static HTML page endpoint
