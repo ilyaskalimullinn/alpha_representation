@@ -10,8 +10,11 @@
         "watch": "vite build --watch --mode development"
     },
     "dependencies": {
+        "konva": "^9.3.20",
+        "pinia": "^3.0.2",
         "vite-plugin-static-copy": "^2.3.1",
-        "vue": "^3.5.13"
+        "vue": "^3.5.13",
+        "vue-konva": "^3.2.0"
     },
     "devDependencies": {
         "@vitejs/plugin-vue": "^5.2.2",
