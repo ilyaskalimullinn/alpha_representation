@@ -14,6 +14,11 @@ export const useGraphStore = defineStore("graph", () => {
         { id: 3, vertexId1: 1, vertexId2: 3 },
     ]);
 
+    const createVertex = (x, y, label) => {
+        let newId = vertices.value[vertices.value.length - 1].id + 1;
+        addVertex({ id: newId, x, y, label });
+    };
+
     const addVertex = (vertex) => {
         vertices.value.push(vertex);
     };
@@ -81,6 +86,7 @@ export const useGraphStore = defineStore("graph", () => {
     return {
         vertices,
         edges,
+        createVertex,
         addVertex,
         addEdge,
         deleteVertex,

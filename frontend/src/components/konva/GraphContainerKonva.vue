@@ -56,7 +56,6 @@ const handleVertexRightClick = (vertex, event) => {
 
 const handleEdgeRightClick = (edge, event) => {
     event.evt.preventDefault();
-    const pos = event.evt;
 
     contextMenu.value = {
         visible: true,
@@ -70,6 +69,14 @@ const handleEdgeRightClick = (edge, event) => {
 const handleStageRightClick = (event) => {
     event.evt.preventDefault();
     closeContextMenu();
+    const pos = event.evt;
+    contextMenu.value = {
+        visible: true,
+        x: pos.clientX,
+        y: pos.clientY,
+        vertex: null,
+        edge: null,
+    };
 };
 
 const deleteVertex = () => {
@@ -90,13 +97,26 @@ const closeContextMenu = () => {
     contextMenu.value.visible = false;
 };
 
+let newVertexLabel = ref(`${graphStore.vertices.length + 1}`);
+const createVertex = () => {
+    graphStore.createVertex(
+        contextMenu.value.x,
+        contextMenu.value.y * props.stageConfig.scaleY,
+        newVertexLabel.value
+    );
+    newVertexLabel.value = `${graphStore.vertices.length + 1}`;
+};
+
 // Close menu when clicking outside
 document.addEventListener("click", closeContextMenu);
 </script>
 
 <template>
-    <div class="graphContainer">
-        <v-stage :config="stageConfig">
+    <div class="graph-container">
+        <v-stage
+            :config="stageConfig"
+            @contextmenu="handleStageRightClick($event)"
+        >
             <v-layer ref="layer">
                 <v-line
                     v-for="edge in graphStore.edges"
@@ -154,7 +174,7 @@ document.addEventListener("click", closeContextMenu);
         <!-- Context Menu -->
         <div
             v-if="contextMenu.visible"
-            class="contextMenu"
+            class="context-menu"
             :style="{
                 left: `${contextMenu.x}px`,
                 top: `${contextMenu.y}px`,
@@ -179,22 +199,42 @@ document.addEventListener("click", closeContextMenu);
                 -
                 {{ graphStore.getVertexById(contextMenu.edge.vertexId2).label }}
             </button>
+
+            <form
+                action="#"
+                class="create-vertex-form"
+                @submit.prevent="createVertex()"
+            >
+                <label for="vertex-label-input">Добавить вершину</label>
+                <input
+                    type="text"
+                    name="vertex-label"
+                    id="vertex-label-input"
+                    maxlength="3"
+                    v-model="newVertexLabel"
+                />
+                <input type="submit" value="Добавить вершину" />
+            </form>
         </div>
     </div>
 </template>
 
 <style scoped>
-.graphContainer {
+.graph-container {
     border: 1px solid black;
     width: v-bind("graphContainerWidth");
 }
 
-.contextMenu {
+.context-menu {
     position: absolute;
     z-index: 10;
     width: 200px;
     border: 1px solid black;
     background-color: rgb(186, 186, 186);
     padding: 5px;
+}
+
+.create-vertex-form {
+    border: 1px solid black;
 }
 </style>
