@@ -1,7 +1,10 @@
 import { defineStore } from "pinia";
 import { ref, watch, computed } from "vue";
 import { fetchFaces, fetchFacesMatrix } from "@/services/api";
-import { fetchVertexPositions } from "../services/api";
+import {
+    fetchTaitChromaticPolynomial,
+    fetchVertexPositions,
+} from "../services/api";
 
 export const useGraphStore = defineStore("graph", () => {
     const vertices = ref([
@@ -23,6 +26,10 @@ export const useGraphStore = defineStore("graph", () => {
     const faces = ref([]);
 
     const facesMatrix = ref([]);
+
+    const coloring = ref({
+        taitChromatic: 0,
+    });
 
     const activeVertexId = ref(null);
     const activeEdgeId = ref(null);
@@ -246,11 +253,22 @@ export const useGraphStore = defineStore("graph", () => {
         await findFacesMatrix();
     };
 
+    const calcTaitChromaticPolynomial = async () => {
+        if (facesMatrix.value.length === 0) {
+            console.error("Сначала найдите грани");
+            return;
+        }
+        const data = await fetchTaitChromaticPolynomial(facesMatrix.value);
+
+        coloring.value.taitChromatic = data.data.tait_0;
+    };
+
     return {
         vertices,
         edges,
         faces,
         facesMatrix,
+        coloring,
         stageConfig,
         activeVertexId,
         activeEdgeId,
@@ -265,5 +283,6 @@ export const useGraphStore = defineStore("graph", () => {
         findFaces,
         findFacesMatrix,
         buildGraph,
+        calcTaitChromaticPolynomial,
     };
 });

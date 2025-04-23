@@ -60,3 +60,10 @@ export const fetchVertexPositions = async (adjacencyMatrix) => {
         .catch(defaultApiExceptionHandler);
     return resp.data;
 };
+
+export const fetchTaitChromaticPolynomial = async (facesMatrix) => {
+    let resp = await instance
+        .post("/calc_tait_0_dual_chromatic", { faces_matrix: facesMatrix })
+        .catch(defaultApiExceptionHandler);
+    return resp.data;
+};
