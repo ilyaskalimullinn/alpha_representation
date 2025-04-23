@@ -56,6 +56,7 @@ const handleVertexRightClick = (vertex, event) => {
 
 const handleEdgeRightClick = (edge, event) => {
     event.evt.preventDefault();
+    const pos = event.evt;
 
     contextMenu.value = {
         visible: true,
@@ -99,12 +100,36 @@ const closeContextMenu = () => {
 
 let newVertexLabel = ref(`${graphStore.vertices.length + 1}`);
 const createVertex = () => {
-    graphStore.createVertex(
-        contextMenu.value.x,
-        contextMenu.value.y * props.stageConfig.scaleY,
-        newVertexLabel.value
-    );
+    graphStore.addVertex({
+        x: contextMenu.value.x,
+        y: contextMenu.value.y * props.stageConfig.scaleY,
+        label: newVertexLabel.value,
+    });
     newVertexLabel.value = `${graphStore.vertices.length + 1}`;
+};
+
+let createEdgeVertex1 = ref(null);
+let createEdgeVertex2 = ref(null);
+const createEdge = () => {
+    if (
+        createEdgeVertex1.value === createEdgeVertex2.value ||
+        createEdgeVertex1.value === null ||
+        createEdgeVertex2.value === null
+    ) {
+        return;
+    }
+
+    let id1 = Math.min(createEdgeVertex1.value, createEdgeVertex2.value);
+    let id2 = Math.max(createEdgeVertex1.value, createEdgeVertex2.value);
+
+    if (graphStore.getEdgeIndex(id1, id2) !== -1) {
+        return;
+    }
+
+    graphStore.addEdge({
+        vertexId1: id1,
+        vertexId2: id2,
+    });
 };
 
 // Close menu when clicking outside
@@ -115,7 +140,7 @@ document.addEventListener("click", closeContextMenu);
     <div class="graph-container">
         <v-stage
             :config="stageConfig"
-            @contextmenu="handleStageRightClick($event)"
+            @contextmenu.self="handleStageRightClick($event)"
         >
             <v-layer ref="layer">
                 <v-line
@@ -129,11 +154,11 @@ document.addEventListener("click", closeContextMenu);
                             graphStore.getVertexById(edge.vertexId2).y,
                         ],
                         stroke: 'red',
-                        strokeWidth: 3,
+                        strokeWidth: 5,
                         tension: 0.5,
                     }"
-                    @mouseover="updateStrokeWidth($event, 5)"
-                    @mouseleave="updateStrokeWidth($event, 3)"
+                    @mouseover="updateStrokeWidth($event, 7)"
+                    @mouseleave="updateStrokeWidth($event, 5)"
                     @contextmenu="handleEdgeRightClick(edge, $event)"
                 />
                 <v-group
@@ -214,6 +239,48 @@ document.addEventListener("click", closeContextMenu);
                     v-model="newVertexLabel"
                 />
                 <input type="submit" value="Добавить вершину" />
+            </form>
+
+            <form
+                action="#"
+                class="create-edge-form"
+                @submit.prevent="createEdge()"
+            >
+                <div class="create-edge-vertex">
+                    <label for="create-edge-vertex-1">Вершина 1</label>
+                    <select
+                        name="create-edge-vertex-1"
+                        id="create-edge-vertex-1"
+                        v-model="createEdgeVertex1"
+                    >
+                        <option
+                            :value="vertex.id"
+                            v-for="vertex in graphStore.vertices"
+                            v-bind="vertex.id"
+                        >
+                            {{ vertex.label }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="create-edge-vertex">
+                    <label for="create-edge-vertex-2">Вершина 2</label>
+                    <select
+                        name="create-edge-vertex-2"
+                        id="create-edge-vertex-2"
+                        v-model="createEdgeVertex2"
+                    >
+                        <option
+                            :value="vertex.id"
+                            v-for="vertex in graphStore.vertices"
+                            v-bind="vertex.id"
+                        >
+                            {{ vertex.label }}
+                        </option>
+                    </select>
+                </div>
+
+                <input type="submit" value="Добавить ребро" />
             </form>
         </div>
     </div>

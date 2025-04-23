@@ -14,12 +14,10 @@ export const useGraphStore = defineStore("graph", () => {
         { id: 3, vertexId1: 1, vertexId2: 3 },
     ]);
 
-    const createVertex = (x, y, label) => {
-        let newId = vertices.value[vertices.value.length - 1].id + 1;
-        addVertex({ id: newId, x, y, label });
-    };
-
     const addVertex = (vertex) => {
+        if (vertex.id === null || vertex.id === undefined) {
+            vertex.id = vertices.value[vertices.value.length - 1].id + 1;
+        }
         vertices.value.push(vertex);
     };
 
@@ -29,11 +27,14 @@ export const useGraphStore = defineStore("graph", () => {
             edge.vertexId1 = edge.vertexId2;
             edge.vertexId2 = v;
         }
+        if (edge.id === null || edge.id === undefined) {
+            edge.id = edges.value[edges.value.length - 1].id + 1;
+        }
         edges.value.push(edge);
     };
 
     const getEdgeIndex = (vertexId1, vertexId2) => {
-        const index = edges.findIndex(
+        const index = edges.value.findIndex(
             (e) => e.vertexId1 === vertexId1 && e.vertexId2 === vertexId2
         );
         return index;
@@ -86,7 +87,6 @@ export const useGraphStore = defineStore("graph", () => {
     return {
         vertices,
         edges,
-        createVertex,
         addVertex,
         addEdge,
         deleteVertex,
