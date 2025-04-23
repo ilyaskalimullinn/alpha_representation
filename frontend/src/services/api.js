@@ -32,8 +32,7 @@ const defaultApiExceptionHandler = (error) => {
     }
 };
 
-export const fetchFaces = async (adjacencyMatrix, vertices) => {
-    const positions = vertices.map((v) => [v.x, v.y]);
+export const fetchFaces = async (adjacencyMatrix, positions) => {
     const response = await instance
         .post("/find_faces", {
             adjacency_matrix: adjacencyMatrix,
@@ -42,4 +41,13 @@ export const fetchFaces = async (adjacencyMatrix, vertices) => {
         .catch(defaultApiExceptionHandler);
 
     return response.data;
+};
+
+export const fetchFacesMatrix = async (faces) => {
+    let resp = await instance
+        .post("/find_faces_matrix", {
+            faces: faces,
+        })
+        .catch(defaultApiExceptionHandler);
+    return resp.data;
 };

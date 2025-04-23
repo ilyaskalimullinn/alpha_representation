@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import { fetchFaces } from "@/services/api";
+import { fetchFaces, fetchFacesMatrix } from "@/services/api";
 
 export const useGraphStore = defineStore("graph", () => {
     const vertices = ref([
@@ -20,6 +20,8 @@ export const useGraphStore = defineStore("graph", () => {
     ]);
 
     const faces = ref([]);
+
+    const facesMatrix = ref([]);
 
     const activeVertexId = ref(null);
     const activeEdgeId = ref(null);
@@ -105,16 +107,13 @@ export const useGraphStore = defineStore("graph", () => {
     });
 
     const findFaces = async () => {
-        const data = await fetchFaces(adjacencyMatrix.value, vertices.value);
+        const positions = vertices.value.map((v) => [v.x, v.y]);
+        const data = await fetchFaces(adjacencyMatrix.value, positions);
         const newFaces = [];
         for (let i in data.data.faces) {
             const vertexIds = data.data.faces[i].slice(1);
-            let face = {
-                vertices: [],
-                edges: [],
-                id: i,
-            };
-            face.id = i;
+            let face = {};
+            face.id = parseInt(i) + 1;
             face.vertices = vertexIds.map((v) => vertices.value[v]);
             face.edges = [];
             for (let j = 1; j < vertexIds.length; j++) {
@@ -134,13 +133,31 @@ export const useGraphStore = defineStore("graph", () => {
             newFaces.push(face);
         }
         faces.value = newFaces;
-        console.log(faces.value);
+    };
+
+    const findFacesMatrix = async () => {
+        if (faces.value.length === 0) {
+            await findFaces();
+        }
+
+        let facesData = [];
+        for (let face of faces.value) {
+            let verticesOfFace = face.vertices.map((v) =>
+                vertices.value.indexOf(v)
+            );
+            facesData.push(verticesOfFace);
+        }
+
+        const data = await fetchFacesMatrix(facesData);
+
+        facesMatrix.value = data.data.faces_matrix;
     };
 
     return {
         vertices,
         edges,
         faces,
+        facesMatrix,
         activeVertexId,
         activeEdgeId,
         addVertex,
@@ -152,5 +169,6 @@ export const useGraphStore = defineStore("graph", () => {
         getVertexIndexById,
         adjacencyMatrix,
         findFaces,
+        findFacesMatrix,
     };
 });

@@ -153,7 +153,7 @@ document.addEventListener("click", closeContextMenu);
                             graphStore.getVertexById(edge.vertexId2).x,
                             graphStore.getVertexById(edge.vertexId2).y,
                         ],
-                        stroke: 'red',
+                        stroke: edge.active ? 'purple' : 'red',
                         strokeWidth: edge.active ? 7 : 5,
                         tension: 0.5,
                     }"
@@ -178,7 +178,7 @@ document.addEventListener("click", closeContextMenu);
                         :config="{
                             radius: 20,
                             fill: 'lightblue',
-                            stroke: 'blue',
+                            stroke: vertex.active ? 'green' : 'blue',
                             strokeWidth: vertex.active ? 4 : 2,
                         }"
                     />

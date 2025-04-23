@@ -51,3 +51,16 @@ button:focus-visible {
   margin: 0 auto;
   padding: 2rem;
 }
+
+.matrix,
+.matrix th,
+.matrix td {
+  border: 1px solid black;
+}
+
+.matrix th:hover,
+.matrix td:hover {
+  cursor: pointer;
+  background-color: lightgrey;
+  transition: 0.2s;
+}

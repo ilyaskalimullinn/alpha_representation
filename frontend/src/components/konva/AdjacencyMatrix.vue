@@ -1,6 +1,10 @@
 <template>
     <h3>Матрица смежности</h3>
-    <table v-if="graphStore.adjacencyMatrix !== null" id="adjacency-matrix">
+    <table
+        v-if="graphStore.adjacencyMatrix !== null"
+        id="adjacency-matrix"
+        class="matrix"
+    >
         <tr>
             <th>Вершина</th>
             <th
@@ -46,18 +50,3 @@ const setEdgeActive = (i, j, active) => {
     graphStore.edges[edgeIndex].active = active;
 };
 </script>
-
-<style scoped>
-#adjacency-matrix,
-#adjacency-matrix th,
-#adjacency-matrix td {
-    border: 1px solid black;
-}
-
-#adjacency-matrix th:hover,
-#adjacency-matrix td:hover {
-    cursor: pointer;
-    background-color: lightgrey;
-    transition: 0.2s;
-}
-</style>
