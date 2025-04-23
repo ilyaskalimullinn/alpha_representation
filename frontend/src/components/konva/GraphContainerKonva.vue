@@ -24,13 +24,11 @@ const graphContainerWidth = `${props.stageConfig.width}px`;
 
 const graphStore = useGraphStore();
 
+graphStore.stageConfig.value = props.stageConfig;
+
 const handleDrag = (vertex, event) => {
     vertex.x = event.target.x();
     vertex.y = event.target.y();
-};
-
-const updateStrokeWidth = (event, strokeWidth) => {
-    event.target.strokeWidth(strokeWidth);
 };
 
 const contextMenu = ref({

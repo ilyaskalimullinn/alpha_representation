@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
-import { ref, computed } from "vue";
+import { ref, watch, computed } from "vue";
 import { fetchFaces, fetchFacesMatrix } from "@/services/api";
+import { fetchVertexPositions } from "../services/api";
 
 export const useGraphStore = defineStore("graph", () => {
     const vertices = ref([
@@ -26,9 +27,14 @@ export const useGraphStore = defineStore("graph", () => {
     const activeVertexId = ref(null);
     const activeEdgeId = ref(null);
 
+    const stageConfig = ref({ width: 800, height: 500, scaleY: -1 });
+
     const addVertex = (vertex) => {
         if (vertex.id === null || vertex.id === undefined) {
             vertex.id = vertices.value[vertices.value.length - 1].id + 1;
+        }
+        if (vertex.label === null || vertex.label === undefined) {
+            vertex.label = `${vertex.id}`;
         }
         if (vertex.active === null || vertex.active === undefined) {
             vertex.active = false;
@@ -103,6 +109,8 @@ export const useGraphStore = defineStore("graph", () => {
                 matrix[j][i] = val;
             }
         }
+        faces.value = [];
+        facesMatrix.value = [];
         return matrix;
     });
 
@@ -153,11 +161,97 @@ export const useGraphStore = defineStore("graph", () => {
         facesMatrix.value = data.data.faces_matrix;
     };
 
+    const buildVertices = async (adjMatrix) => {
+        const data = await fetchVertexPositions(adjMatrix);
+
+        const width = stageConfig.width;
+        const height = stageConfig.height;
+
+        let positions = data.data.positions;
+
+        let min_x = positions[0][0];
+        let max_x = min_x;
+        let min_y = positions[0][1];
+        let max_y = min_y;
+
+        for (let i = 1; i < positions.length; i++) {
+            if (positions[i][0] < min_x) {
+                min_x = positions[i][0];
+            }
+            if (positions[i][1] < min_y) {
+                min_y = positions[i][1];
+            }
+            if (positions[i][0] > max_x) {
+                max_x = positions[i][0];
+            }
+            if (positions[i][1] > max_y) {
+                max_y = positions[i][1];
+            }
+        }
+
+        // now min coordinate goes to 10% of canvas, max - to 90%
+        const width_80 = width * 0.8;
+        const width_10 = width * 0.1;
+        const height_80 = height * 0.8;
+        const height_10 = height * 0.1;
+
+        for (let i = 0; i < positions.length; i++) {
+            let x =
+                ((positions[i][0] - min_x) / (max_x - min_x)) * width_80 +
+                width_10;
+            let y =
+                ((positions[i][1] - min_y) / (max_y - min_y)) * height_80 +
+                height_10;
+
+            addVertex({ x: x, y: y });
+        }
+    };
+
+    const buildGraph = async (graphData) => {
+        if (graphData.adjacency_matrix === undefined) {
+            console.error("Нет матрицы смежности, ошибка");
+            return;
+        }
+        let adjMatrix = graphData.adjacency_matrix;
+
+        vertices.value = [];
+        edges.value = [];
+
+        if (
+            graphData.vertices === undefined ||
+            graphData.vertices.length === 0
+        ) {
+            await buildVertices(adjMatrix);
+        } else {
+            for (let v of graphData.vertices) {
+                addVertex(v);
+            }
+        }
+
+        if (graphData.edges === undefined) {
+            for (let i = 0; i < adjMatrix.length; i++) {
+                for (let j = i + 1; j < adjMatrix.length; j++) {
+                    addEdge({
+                        vertexId1: vertices.value[i].id,
+                        vertexId2: vertices.value[j].id,
+                    });
+                }
+            }
+        } else {
+            for (let e of graphData.edges) {
+                addEdge(e);
+            }
+        }
+
+        await findFacesMatrix();
+    };
+
     return {
         vertices,
         edges,
         faces,
         facesMatrix,
+        stageConfig,
         activeVertexId,
         activeEdgeId,
         addVertex,
@@ -170,5 +264,6 @@ export const useGraphStore = defineStore("graph", () => {
         adjacencyMatrix,
         findFaces,
         findFacesMatrix,
+        buildGraph,
     };
 });

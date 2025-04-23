@@ -51,3 +51,12 @@ export const fetchFacesMatrix = async (faces) => {
         .catch(defaultApiExceptionHandler);
     return resp.data;
 };
+
+export const fetchVertexPositions = async (adjacencyMatrix) => {
+    let resp = await instance
+        .post("/positions", {
+            adjacency_matrix: adjacencyMatrix,
+        })
+        .catch(defaultApiExceptionHandler);
+    return resp.data;
+};

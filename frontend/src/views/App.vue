@@ -2,6 +2,7 @@
 import GraphContainerKonva from "@/components/konva/GraphContainerKonva.vue";
 import AdjacencyMatrix from "@/components/konva/AdjacencyMatrix.vue";
 import FacesControl from "@/components/konva/FacesControl.vue";
+import FileControl from "@/components/konva/FileControl.vue";
 </script>
 
 <template>
@@ -17,6 +18,9 @@ import FacesControl from "@/components/konva/FacesControl.vue";
         </section>
         <section class="section">
             <FacesControl />
+        </section>
+        <section class="section">
+            <FileControl />
         </section>
     </main>
 </template>
