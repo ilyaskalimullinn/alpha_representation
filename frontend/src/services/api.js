@@ -1,0 +1,45 @@
+import axios from "axios";
+
+const API_URL = import.meta.env.API_URL || "http://localhost:8000/api/v1";
+
+const instance = axios.create({
+    baseURL: API_URL,
+});
+
+instance.interceptors.request.use(
+    function (config) {
+        config.headers["Accept"] = `application/json`;
+        config.headers["Content-Type"] = "application/json";
+        return config;
+    },
+    function (error) {
+        return Promise.reject(error);
+    }
+);
+
+const defaultApiExceptionHandler = (error) => {
+    if (error.response) {
+        console.error(error.response);
+
+        let err = new Error(
+            error.response.data.message || "Неизвестная ошибка без сообщения"
+        );
+        err.statusCode = error.response.status;
+        throw err;
+    } else {
+        console.error("Полная ошибка:", error.message);
+        throw new Error("Неизвестная ошибка, попробуйте еще раз");
+    }
+};
+
+export const fetchFaces = async (adjacencyMatrix, vertices) => {
+    const positions = vertices.map((v) => [v.x, v.y]);
+    const response = await instance
+        .post("/find_faces", {
+            adjacency_matrix: adjacencyMatrix,
+            positions: positions,
+        })
+        .catch(defaultApiExceptionHandler);
+
+    return response.data;
+};

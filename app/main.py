@@ -3,10 +3,12 @@ import pathlib
 from typing import List, Optional
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import status
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.graph import (
     calc_vertex_positions,
@@ -46,6 +48,13 @@ BASE_DIR = pathlib.Path(os.path.abspath(__file__)).parent.parent
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.mount("/static", StaticFiles(directory=BASE_DIR / "build/static"), name="static")
 
 templates = Jinja2Templates(directory=BASE_DIR / "build/pages")
@@ -73,7 +82,10 @@ async def calc_positions(request: PositionsRequest):
         pos_list = calc_vertex_positions(request.adjacency_matrix)
         return {"status": "ok", "data": {"positions": pos_list}}
     except ValueError:
-        return {"status": "error", "data": {"message": "Graph is not planar"}}
+        return JSONResponse(
+            content={"status": "error", "data": {"message": "Graph is not planar"}},
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 @app.post("/api/v1/find_faces")
@@ -121,12 +133,15 @@ async def calc_tait_0_using_dual_chromatic(request: CalcTait0DualChromatic):
     faces_matrix = request.faces_matrix
     dual_adjacency_matrix = request.dual_adjacency_matrix
     if (faces_matrix is None) == (dual_adjacency_matrix is None):
-        return {
-            "status": "error",
-            "data": {
-                "message": "Exactly one of `faces_matrix` and `dual_adjacency_matrix` parameters must be non-empty"
+        return JSONResponse(
+            content={
+                "status": "error",
+                "data": {
+                    "message": "Exactly one of `faces_matrix` and `dual_adjacency_matrix` parameters must be non-empty"
+                },
             },
-        }
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
     if dual_adjacency_matrix is None:
         dual_adjacency_matrix = faces_matrix_to_adjacency_matrix(faces_matrix)
         print(dual_adjacency_matrix)
