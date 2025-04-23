@@ -154,11 +154,11 @@ document.addEventListener("click", closeContextMenu);
                             graphStore.getVertexById(edge.vertexId2).y,
                         ],
                         stroke: 'red',
-                        strokeWidth: 5,
+                        strokeWidth: edge.active ? 7 : 5,
                         tension: 0.5,
                     }"
-                    @mouseover="updateStrokeWidth($event, 7)"
-                    @mouseleave="updateStrokeWidth($event, 5)"
+                    @mouseover="edge.active = true"
+                    @mouseleave="edge.active = false"
                     @contextmenu="handleEdgeRightClick(edge, $event)"
                 />
                 <v-group
@@ -170,8 +170,8 @@ document.addEventListener("click", closeContextMenu);
                         draggable: true,
                     }"
                     @dragmove="handleDrag(vertex, $event)"
-                    @mouseover="updateStrokeWidth($event, 4)"
-                    @mouseleave="updateStrokeWidth($event, 2)"
+                    @mouseover="vertex.active = true"
+                    @mouseleave="vertex.active = false"
                     @contextmenu="handleVertexRightClick(vertex, $event)"
                 >
                     <v-circle
@@ -179,7 +179,7 @@ document.addEventListener("click", closeContextMenu);
                             radius: 20,
                             fill: 'lightblue',
                             stroke: 'blue',
-                            strokeWidth: 2,
+                            strokeWidth: vertex.active ? 4 : 2,
                         }"
                     />
                     <v-text

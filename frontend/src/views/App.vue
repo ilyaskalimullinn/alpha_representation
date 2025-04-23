@@ -1,5 +1,6 @@
 <script setup>
 import GraphContainerKonva from "@/components/konva/GraphContainerKonva.vue";
+import AdjacencyMatrix from "@/components/konva/AdjacencyMatrix.vue";
 </script>
 
 <template>
@@ -9,6 +10,9 @@ import GraphContainerKonva from "@/components/konva/GraphContainerKonva.vue";
     <main class="main">
         <section class="section">
             <GraphContainerKonva />
+        </section>
+        <section class="section">
+            <AdjacencyMatrix />
         </section>
     </main>
 </template>

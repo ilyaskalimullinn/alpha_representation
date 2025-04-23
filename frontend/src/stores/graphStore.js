@@ -3,26 +3,32 @@ import { ref, computed } from "vue";
 
 export const useGraphStore = defineStore("graph", () => {
     const vertices = ref([
-        { id: 1, x: 100, y: -100, label: "1" },
-        { id: 2, x: 200, y: -200, label: "2" },
-        { id: 3, x: 300, y: -100, label: "3" },
+        { id: 1, x: 100, y: -100, label: "1", active: false },
+        { id: 2, x: 200, y: -200, label: "2", active: false },
+        { id: 3, x: 300, y: -100, label: "3", active: false },
     ]);
 
     const edges = ref([
-        { id: 1, vertexId1: 1, vertexId2: 2 },
-        { id: 2, vertexId1: 2, vertexId2: 3 },
-        { id: 3, vertexId1: 1, vertexId2: 3 },
+        { id: 1, vertexId1: 1, vertexId2: 2, active: false },
+        { id: 2, vertexId1: 2, vertexId2: 3, active: false },
+        { id: 3, vertexId1: 1, vertexId2: 3, active: false },
     ]);
+
+    const activeVertexId = ref(null);
+    const activeEdgeId = ref(null);
 
     const addVertex = (vertex) => {
         if (vertex.id === null || vertex.id === undefined) {
             vertex.id = vertices.value[vertices.value.length - 1].id + 1;
         }
+        if (vertex.active === null || vertex.active === undefined) {
+            vertex.active = false;
+        }
         vertices.value.push(vertex);
     };
 
     const addEdge = (edge) => {
-        if (edge.vertexId1 < edge.vertexId2) {
+        if (edge.vertexId1 > edge.vertexId2) {
             let v = edge.vertexId1;
             edge.vertexId1 = edge.vertexId2;
             edge.vertexId2 = v;
@@ -30,12 +36,17 @@ export const useGraphStore = defineStore("graph", () => {
         if (edge.id === null || edge.id === undefined) {
             edge.id = edges.value[edges.value.length - 1].id + 1;
         }
+        if (edge.active === null || edge.active === undefined) {
+            edge.active = false;
+        }
         edges.value.push(edge);
     };
 
     const getEdgeIndex = (vertexId1, vertexId2) => {
         const index = edges.value.findIndex(
-            (e) => e.vertexId1 === vertexId1 && e.vertexId2 === vertexId2
+            (e) =>
+                (e.vertexId1 === vertexId1 && e.vertexId2 === vertexId2) ||
+                (e.vertexId1 === vertexId2 && e.vertexId2 === vertexId1)
         );
         return index;
     };
@@ -65,13 +76,15 @@ export const useGraphStore = defineStore("graph", () => {
     };
 
     const adjacencyMatrix = computed(() => {
-        const n = vertices.value.length;
-        let matrix = new Array(n);
-        for (let i = 0; i < n; i++) {
-            matrix[i] = new Array(n);
+        if (vertices.value.length === 0) {
+            return null;
         }
-        for (let i = 0; i < n; i++) {
-            for (let j = i + 1; j < n; j++) {
+        let matrix = new Array(vertices.value.length);
+        for (let i = 0; i < vertices.value.length; i++) {
+            matrix[i] = new Array(vertices.value.length);
+        }
+        for (let i = 0; i < vertices.value.length; i++) {
+            for (let j = i; j < vertices.value.length; j++) {
                 let edgeIndex = getEdgeIndex(
                     vertices.value[i].id,
                     vertices.value[j].id
@@ -87,6 +100,8 @@ export const useGraphStore = defineStore("graph", () => {
     return {
         vertices,
         edges,
+        activeVertexId,
+        activeEdgeId,
         addVertex,
         addEdge,
         deleteVertex,
