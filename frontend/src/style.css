@@ -36,9 +36,12 @@ button {
   font-family: inherit;
   cursor: pointer;
   transition: border-color 0.25s;
+  background-color: #e0e0e6;
+  margin: 5px;
 }
 button:hover {
   border-color: #646cff;
+  opacity: .8;
   transition: .2s;
 }
 button:focus,
@@ -69,5 +72,5 @@ button:focus-visible {
   border: 1px solid black;
   border-radius: 5px;
   margin: 5px;
-  padding:5px;
+  padding:10px;
 }

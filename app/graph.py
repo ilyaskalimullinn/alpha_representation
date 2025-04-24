@@ -255,11 +255,11 @@ def calc_tait_0_aggregated(
             n_even_ranks += 1
             n_tait_0 += det_minor * (fractions.Fraction(-1, 3) ** (rank // 2))
 
-        rank_det_str = f"{rank},{det_minor}"
-        if rank_det_str in rank_and_det_counts:
-            rank_and_det_counts[rank_det_str] += 1
-        else:
-            rank_and_det_counts[rank_det_str] = 1
+        if rank not in rank_and_det_counts:
+            rank_and_det_counts[rank] = [0, 0]
+
+        index = 0 if det_minor == -1 else 1
+        rank_and_det_counts[rank][index] += 1
 
     assert (
         n_tait_0.numerator % n_tait_0.denominator == 0

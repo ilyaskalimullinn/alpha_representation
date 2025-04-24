@@ -1,6 +1,7 @@
 <script setup>
 import { useGraphStore } from "@/stores/graphStore";
-import { defineProps, ref } from "vue";
+import { storeToRefs } from "pinia";
+import { defineProps, ref, watch } from "vue";
 
 const props = defineProps({
     stageConfig: {
@@ -97,6 +98,15 @@ const closeContextMenu = () => {
 };
 
 let newVertexLabel = ref(`${graphStore.vertices.length + 1}`);
+
+const { vertices } = storeToRefs(graphStore);
+watch(
+    vertices,
+    (newValue) => {
+        newVertexLabel.value = `${newValue.length + 1}`;
+    },
+    { deep: true }
+);
 const createVertex = () => {
     graphStore.addVertex({
         x: contextMenu.value.x,

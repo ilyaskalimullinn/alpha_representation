@@ -62,6 +62,16 @@ export const useGraphStore = defineStore("graph", () => {
         if (vertex.active === null || vertex.active === undefined) {
             vertex.active = false;
         }
+        if (vertex.x <= 0 || vertex.x >= stageConfig.value.width) {
+            vertex.x = stageConfig.value.width / 2;
+        }
+        if (
+            vertex.y * stageConfig.value.scaleY <= 0 ||
+            vertex.y * stageConfig.value.scaleY >= stageConfig.value.height
+        ) {
+            vertex.y =
+                (stageConfig.value.scaleY * stageConfig.value.height) / 2;
+        }
         vertices.value.push(vertex);
     };
 
@@ -239,6 +249,9 @@ export const useGraphStore = defineStore("graph", () => {
 
         vertices.value = [];
         edges.value = [];
+        faces.value = [];
+        facesMatrix.value = [];
+        clearAlphaStats();
 
         if (
             graphData.vertices === undefined ||
@@ -271,8 +284,7 @@ export const useGraphStore = defineStore("graph", () => {
 
     const calcTaitChromaticPolynomial = async () => {
         if (facesMatrix.value.length === 0) {
-            console.error("Сначала найдите грани");
-            return;
+            await findFacesMatrix();
         }
         const data = await fetchTaitChromaticPolynomial(facesMatrix.value);
 
@@ -281,8 +293,7 @@ export const useGraphStore = defineStore("graph", () => {
 
     const calcTaitAlphaRepresentation = async (detail) => {
         if (facesMatrix.value.length === 0) {
-            console.error("Сначала найдите грани");
-            return;
+            await findFacesMatrix();
         }
         const resp = await fetchTaitAlphaRepresentation(
             facesMatrix.value,
@@ -290,18 +301,17 @@ export const useGraphStore = defineStore("graph", () => {
         );
         const data = resp.data;
 
-        clearAlphaStats();
         coloring.value.taitAlpha = data.tait_0;
 
         if (detail) {
             coloring.value.taitAlphaDetail.determinantList = data.det_list;
             coloring.value.taitAlphaDetail.rankList = data.rank_list;
         } else {
-            coloring.value.taitAlphaDetail.numEvenRanks = data.n_even_ranks;
-            coloring.value.taitAlphaDetail.numOddRanks = data.n_odd_ranks;
-            coloring.value.taitAlphaDetail.numZeroRanks = data.n_zero_ranks;
-            coloring.value.taitAlphaDetail.rankAndDeterminantCounts =
-                data.ranks_and_det_counts;
+            coloring.value.taitAlphaNoDetail.numEvenRanks = data.n_even_ranks;
+            coloring.value.taitAlphaNoDetail.numOddRanks = data.n_odd_ranks;
+            coloring.value.taitAlphaNoDetail.numZeroRanks = data.n_zero_ranks;
+            coloring.value.taitAlphaNoDetail.rankAndDeterminantCounts =
+                data.rank_and_det_counts;
         }
     };
 

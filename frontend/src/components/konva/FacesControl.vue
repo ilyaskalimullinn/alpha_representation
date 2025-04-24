@@ -76,6 +76,9 @@ const setFaceActive = (face, active) => {
 
 const getSigma = (vertexIds) => {
     let vertices = vertexIds.map((i) => `σ(${graphStore.vertices[i].label})`);
+    if (vertices.length === 0) {
+        return "0";
+    }
     return vertices.join("+");
 };
 </script>
