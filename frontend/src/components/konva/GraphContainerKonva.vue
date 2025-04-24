@@ -144,7 +144,7 @@ const createEdge = () => {
 document.addEventListener("click", closeContextMenu);
 
 // Make face labels visible
-const faceLabelsVisible = ref(true);
+const faceLabelsVisible = ref(false);
 
 const faceLabelPositions = ref([]);
 watch(faces, (newValue) => {
@@ -162,6 +162,7 @@ watch(faces, (newValue) => {
 });
 
 const setFaceActive = (face, active) => {
+    face.active = active;
     for (let vertice of face.vertices) {
         vertice.active = active;
     }
@@ -243,8 +244,8 @@ const setFaceActive = (face, active) => {
                         :config="{
                             width: 30,
                             height: 30,
-                            strokeWidth: 1,
-                            fill: 'lightgreen',
+                            fill: face.active ? 'orange' : 'lightgreen',
+                            strokeWidth: face.active ? 2 : 1,
                         }"
                     />
                     <v-text

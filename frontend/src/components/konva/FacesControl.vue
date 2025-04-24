@@ -66,6 +66,7 @@ import { useGraphStore } from "@/stores/graphStore";
 const graphStore = useGraphStore();
 
 const setFaceActive = (face, active) => {
+    face.active = active;
     for (let vertice of face.vertices) {
         vertice.active = active;
     }

@@ -153,7 +153,7 @@ export const useGraphStore = defineStore("graph", () => {
         const newFaces = [];
         for (let i in data.data.faces) {
             const vertexIds = data.data.faces[i].slice(1);
-            let face = {};
+            let face = { active: false };
             face.id = parseInt(i) + 1;
             face.vertices = vertexIds.map((v) => vertices.value[v]);
             face.edges = [];
