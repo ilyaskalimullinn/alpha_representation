@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { ref, watch, computed } from "vue";
 import { fetchFaces, fetchFacesMatrix } from "@/services/api";
 import {
+    fetchTaitAlphaRepresentation,
     fetchTaitChromaticPolynomial,
     fetchVertexPositions,
 } from "../services/api";
@@ -27,9 +28,24 @@ export const useGraphStore = defineStore("graph", () => {
 
     const facesMatrix = ref([]);
 
-    const coloring = ref({
+    const defaultAlphaRepresentationStats = {
         taitChromatic: 0,
-    });
+        taitAlpha: 0,
+        taitAlphaDetail: {
+            determinantList: [],
+            rankList: [],
+        },
+        taitAlphaNoDetail: {
+            numEvenRanks: 0,
+            numOddRanks: 0,
+            numZeroRanks: 0,
+            rankAndDeterminantCounts: [],
+        },
+    };
+
+    const coloring = ref(
+        JSON.parse(JSON.stringify(defaultAlphaRepresentationStats))
+    );
 
     const activeVertexId = ref(null);
     const activeEdgeId = ref(null);
@@ -263,6 +279,38 @@ export const useGraphStore = defineStore("graph", () => {
         coloring.value.taitChromatic = data.data.tait_0;
     };
 
+    const calcTaitAlphaRepresentation = async (detail) => {
+        if (facesMatrix.value.length === 0) {
+            console.error("Сначала найдите грани");
+            return;
+        }
+        const resp = await fetchTaitAlphaRepresentation(
+            facesMatrix.value,
+            detail
+        );
+        const data = resp.data;
+
+        clearAlphaStats();
+        coloring.value.taitAlpha = data.tait_0;
+
+        if (detail) {
+            coloring.value.taitAlphaDetail.determinantList = data.det_list;
+            coloring.value.taitAlphaDetail.rankList = data.rank_list;
+        } else {
+            coloring.value.taitAlphaDetail.numEvenRanks = data.n_even_ranks;
+            coloring.value.taitAlphaDetail.numOddRanks = data.n_odd_ranks;
+            coloring.value.taitAlphaDetail.numZeroRanks = data.n_zero_ranks;
+            coloring.value.taitAlphaDetail.rankAndDeterminantCounts =
+                data.ranks_and_det_counts;
+        }
+    };
+
+    const clearAlphaStats = () => {
+        coloring.value = JSON.parse(
+            JSON.stringify(defaultAlphaRepresentationStats)
+        );
+    };
+
     return {
         vertices,
         edges,
@@ -284,5 +332,6 @@ export const useGraphStore = defineStore("graph", () => {
         findFacesMatrix,
         buildGraph,
         calcTaitChromaticPolynomial,
+        calcTaitAlphaRepresentation,
     };
 });

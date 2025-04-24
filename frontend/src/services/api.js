@@ -67,3 +67,10 @@ export const fetchTaitChromaticPolynomial = async (facesMatrix) => {
         .catch(defaultApiExceptionHandler);
     return resp.data;
 };
+
+export const fetchTaitAlphaRepresentation = async (facesMatrix, detail) => {
+    let resp = await instance
+        .post("/calc_tait_0", { faces_matrix: facesMatrix, detail })
+        .catch(defaultApiExceptionHandler);
+    return resp.data;
+};

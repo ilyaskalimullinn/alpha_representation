@@ -64,3 +64,10 @@ button:focus-visible {
   background-color: lightgrey;
   transition: 0.2s;
 }
+
+.block {
+  border: 1px solid black;
+  border-radius: 5px;
+  margin: 5px;
+  padding:5px;
+}
