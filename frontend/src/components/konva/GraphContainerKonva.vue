@@ -99,7 +99,7 @@ const closeContextMenu = () => {
 
 let newVertexLabel = ref(`${graphStore.vertices.length + 1}`);
 
-const { vertices } = storeToRefs(graphStore);
+const { vertices, faces } = storeToRefs(graphStore);
 watch(
     vertices,
     (newValue) => {
@@ -142,6 +142,33 @@ const createEdge = () => {
 
 // Close menu when clicking outside
 document.addEventListener("click", closeContextMenu);
+
+// Make face labels visible
+const faceLabelsVisible = ref(true);
+
+const faceLabelPositions = ref([]);
+watch(faces, (newValue) => {
+    faceLabelPositions.value = [];
+    for (let face of newValue) {
+        faceLabelPositions.value.push({
+            x:
+                face.vertices.map((v) => v.x).reduce((a, b) => a + b) /
+                face.vertices.length,
+            y:
+                face.vertices.map((v) => v.y).reduce((a, b) => a + b) /
+                face.vertices.length,
+        });
+    }
+});
+
+const setFaceActive = (face, active) => {
+    for (let vertice of face.vertices) {
+        vertice.active = active;
+    }
+    for (let edge of face.edges) {
+        edge.active = active;
+    }
+};
 </script>
 
 <template>
@@ -198,6 +225,35 @@ document.addEventListener("click", closeContextMenu);
                             fontSize: 15,
                             fill: 'black',
                             scaleY: stageConfig.scaleY,
+                        }"
+                    />
+                </v-group>
+
+                <v-group
+                    v-for="(face, i) in graphStore.faces"
+                    v-if="faceLabelsVisible"
+                    :config="{
+                        draggable: true,
+                        ...faceLabelPositions[i],
+                    }"
+                    @mouseover="setFaceActive(face, true)"
+                    @mouseleave="setFaceActive(face, false)"
+                >
+                    <v-rect
+                        :config="{
+                            width: 30,
+                            height: 30,
+                            strokeWidth: 1,
+                            fill: 'lightgreen',
+                        }"
+                    />
+                    <v-text
+                        :config="{
+                            x: 10,
+                            y: 20,
+                            text: `${i + 1}`,
+                            scaleY: stageConfig.scaleY,
+                            fontSize: 20,
                         }"
                     />
                 </v-group>
@@ -290,6 +346,14 @@ document.addEventListener("click", closeContextMenu);
 
                 <input type="submit" value="Добавить ребро" />
             </form>
+
+            <label for="toggle-faces-visible-checkbox">Метки граней</label>
+            <input
+                type="checkbox"
+                name="toggle-faces-visible"
+                id="toggle-faces-visible-checkbox"
+                v-model="faceLabelsVisible"
+            />
         </div>
     </div>
 </template>
