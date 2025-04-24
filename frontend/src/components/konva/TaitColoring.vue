@@ -281,7 +281,7 @@ const sumTwoGaussianSums = (a, b) => {
         return `${newNominator}`;
     }
 
-    return `${newNominator}&frasl;${newDenominator}`;
+    return `${newNominator} &frasl; ${newDenominator}`;
 };
 
 const calcGcd = function (a, b) {
