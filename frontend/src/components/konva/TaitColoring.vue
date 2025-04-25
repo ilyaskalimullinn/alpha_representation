@@ -41,51 +41,11 @@
                 Количество: <span>{{ graphStore.coloring.taitAlpha }}</span>
             </p>
 
-            <table class="matrix">
-                <tr>
-                    <th>Строка</th>
-                    <th>Ранг минора</th>
-                    <th>Значение минора</th>
-                    <th>Гауссова сумма</th>
-
-                    <!-- all sigmas (for every vertex) -->
-                    <th
-                        v-for="vertex in graphStore.vertices"
-                        :key="`vertex_th_${vertex.id}`"
-                    >
-                        {{ vertex.label }}
-                    </th>
-                </tr>
-
-                <tr
-                    v-for="(rank, i) in graphStore.coloring.taitAlphaDetail
-                        .rankList"
-                >
-                    <td>{{ i }}</td>
-                    <td>{{ rank }}</td>
-                    <td>
-                        {{
-                            graphStore.coloring.taitAlphaDetail.determinantList[
-                                i
-                            ]
-                        }}
-                    </td>
-                    <td
-                        v-html="
-                            gaussSumString(
-                                rank,
-                                graphStore.coloring.taitAlphaDetail
-                                    .determinantList[i],
-                                1
-                            )
-                        "
-                    ></td>
-
-                    <td v-for="(vertex, vertex_ind) in graphStore.vertices">
-                        {{ sigmaList[i][vertex_ind] }}
-                    </td>
-                </tr>
-            </table>
+            <DataTable
+                :columns="detailRankDeterminantTableColumns"
+                :data="detailRankDeterminantTable"
+                class="matrix"
+            />
         </div>
 
         <div
@@ -109,29 +69,11 @@
                     graphStore.coloring.taitAlphaNoDetail.numZeroRanks
                 }}</span>
             </p>
-            <table class="matrix">
-                <tr>
-                    <th>Ранг</th>
-                    <th>det = -1</th>
-                    <th>det = +1</th>
-                    <th>Gau(rank, det=-1)</th>
-                    <th>Gau(rank, det=+1)</th>
-                    <th>Total Gau(rank, det=-1)</th>
-                    <th>Total Gau(rank, det=+1)</th>
-                    <th>Total row sum</th>
-                </tr>
-
-                <tr v-for="value in noDetailRankDeterminantTable">
-                    <td>{{ value.rank }}</td>
-                    <td>{{ value.numDetNegative }}</td>
-                    <td>{{ value.numDetPositive }}</td>
-                    <td v-html="value.gaussSumNegative"></td>
-                    <td v-html="value.gaussSumPositive"></td>
-                    <td v-html="value.gaussSumNegativeTotal"></td>
-                    <td v-html="value.gaussSumPositiveTotal"></td>
-                    <td v-html="value.rowSum"></td>
-                </tr>
-            </table>
+            <DataTable
+                :columns="noDetailRankDeterminantTableColumns"
+                :data="noDetailRankDeterminantTable"
+                class="matrix data-table"
+            />
         </div>
     </div>
 </template>
@@ -139,14 +81,14 @@
 <script setup>
 import { ref, computed } from "vue";
 import { useGraphStore } from "@/stores/graphStore";
+import DataTable from "datatables.net-vue3";
+import DataTablesCore from "datatables.net-dt";
+
+DataTable.use(DataTablesCore);
 
 const graphStore = useGraphStore();
 
 const alphaDetail = ref(false);
-
-const sigmaList = computed(() => {
-    return generateAllSigma(graphStore.vertices.length);
-});
 
 const generateAllSigma = (n) => {
     const total = Math.pow(2, n);
@@ -164,6 +106,50 @@ const generateAllSigma = (n) => {
 
     return result;
 };
+const detailRankDeterminantTableColumns = computed(() => {
+    const cols = [
+        { data: "rank", title: "Ранг" },
+        { data: "det", title: "Минор" },
+        { data: "gaussSum", title: "Гауссова сумма" },
+    ];
+    for (let vertex of graphStore.vertices) {
+        cols.push({ data: `vertex_${vertex.id}`, title: vertex.label });
+    }
+
+    return cols;
+});
+const detailRankDeterminantTable = computed(() => {
+    const allSigma = generateAllSigma(graphStore.vertices.length);
+
+    const table = [];
+    for (let i = 0; i < allSigma.length; i++) {
+        let rank = graphStore.coloring.taitAlphaDetail.rankList[i];
+        let det = graphStore.coloring.taitAlphaDetail.determinantList[i];
+        let val = {
+            rank: rank,
+            det: det,
+            gaussSum: gaussSumString(rank, det, 1),
+        };
+        for (
+            let vertexIndex = 0;
+            vertexIndex < allSigma[i].length;
+            vertexIndex++
+        ) {
+            let vertexId = graphStore.vertices[vertexIndex].id;
+            val[`vertex_${vertexId}`] = allSigma[i][vertexIndex];
+        }
+        table.push(val);
+    }
+    return table;
+});
+
+const noDetailRankDeterminantTableColumns = [
+    { data: "rank", title: "Ранг матрицы" },
+    { data: "det", title: "Значение минора" },
+    { data: "numExamples", title: "Количество примеров" },
+    { data: "gaussSum", title: "Гауссова сумма в этом случае" },
+    { data: "gaussSumTotal", title: "Сумма гауссовых сумм" },
+];
 
 const noDetailRankDeterminantTable = computed(() => {
     const arrayOfRanks = Object.keys(
@@ -189,30 +175,21 @@ const noDetailRankDeterminantTable = computed(() => {
 
     const table = [];
     for (let rank of arrayOfRanks) {
-        let val = {
-            rank: rank,
-            numDetNegative:
+        for (let det of [-1, 1]) {
+            let ind = det === 1 ? 1 : 0;
+            let numExamples =
                 graphStore.coloring.taitAlphaNoDetail.rankAndDeterminantCounts[
                     rank
-                ][0],
-            numDetPositive:
-                graphStore.coloring.taitAlphaNoDetail.rankAndDeterminantCounts[
-                    rank
-                ][1],
-            gaussSumNegative: gaussSumString(rank, -1, 1),
-            gaussSumPositive: gaussSumString(rank, 1, 1),
-        };
-        val.gaussSumNegativeTotal = gaussSumString(
-            rank,
-            -1,
-            val.numDetNegative
-        );
-        val.gaussSumPositiveTotal = gaussSumString(rank, 1, val.numDetPositive);
-        val.rowSum = sumTwoGaussianSums(
-            val.gaussSumNegativeTotal,
-            val.gaussSumPositiveTotal
-        );
-        table.push(val);
+                ][ind];
+            let val = {
+                rank: rank,
+                det: det,
+                numExamples: numExamples,
+                gaussSum: gaussSumString(rank, det, 1),
+                gaussSumTotal: gaussSumString(rank, det, numExamples),
+            };
+            table.push(val);
+        }
     }
 
     return table;
@@ -244,6 +221,12 @@ const gaussSumString = (rank, det, numOfSums) => {
         return `${numOfSums} &frasl; ${powerThree}`;
     }
     // if rank is odd
+    if (numOfSums === 1) {
+        numOfSums = "";
+    } else if (numOfSums === -1) {
+        numOfSums = "-";
+    }
+
     if (powerThree == 1) {
         return `${numOfSums}i`;
     }

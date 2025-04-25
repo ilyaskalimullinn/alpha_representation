@@ -59,6 +59,7 @@ button:focus-visible {
 .matrix th,
 .matrix td {
   border: 1px solid black;
+  text-align: center;
 }
 
 .matrix th:hover,
