@@ -228,7 +228,7 @@ const gaussSumString = (rank, det, numOfSums) => {
     }
 
     if (powerThree == 1) {
-        return `${numOfSums}i`;
+        return `${numOfSums}i &radic; 3`;
     }
     return `${numOfSums}i &frasl; ${powerThree} &radic; 3`;
 };
