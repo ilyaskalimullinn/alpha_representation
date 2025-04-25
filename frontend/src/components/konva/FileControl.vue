@@ -31,8 +31,6 @@ const getGraphJSON = () => {
         adjacency_matrix: graphStore.adjacencyMatrix,
         vertices: graphStore.vertices,
         edges: graphStore.edges,
-        faces: graphStore.faces,
-        faces_matrix: graphStore.facesMatrix,
     };
 };
 

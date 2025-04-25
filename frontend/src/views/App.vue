@@ -9,32 +9,32 @@ import TaitColoring from "@/components/konva/TaitColoring.vue";
 <template>
     <div class="container">
         <h1>Раскраски Тейта</h1>
+        <main class="main">
+            <section class="section top">
+                <div class="block">
+                    <GraphContainerKonva />
+                </div>
+                <div class="block">
+                    <FacesControl />
+                </div>
+            </section>
+            <section class="section">
+                <div class="block">
+                    <AdjacencyMatrix />
+                </div>
+            </section>
+            <section class="section">
+                <div class="block">
+                    <FileControl />
+                </div>
+            </section>
+            <section class="section">
+                <div class="block">
+                    <TaitColoring />
+                </div>
+            </section>
+        </main>
     </div>
-    <main class="main">
-        <section class="section top">
-            <div class="block">
-                <GraphContainerKonva />
-            </div>
-            <div class="block">
-                <FacesControl />
-            </div>
-        </section>
-        <section class="section">
-            <div class="block">
-                <AdjacencyMatrix />
-            </div>
-        </section>
-        <section class="section">
-            <div class="block">
-                <FileControl />
-            </div>
-        </section>
-        <section class="section">
-            <div class="block">
-                <TaitColoring />
-            </div>
-        </section>
-    </main>
 </template>
 
 <style scoped>

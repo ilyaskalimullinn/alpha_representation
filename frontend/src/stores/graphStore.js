@@ -9,19 +9,47 @@ import {
 
 export const useGraphStore = defineStore("graph", () => {
     const vertices = ref([
-        { id: 1, x: 100, y: -100, label: "1", active: false },
-        { id: 2, x: 200, y: -200, label: "2", active: false },
-        { id: 3, x: 300, y: -100, label: "3", active: false },
-        { id: 4, x: 200, y: -300, label: "4", active: false },
+        {
+            id: 1,
+            x: 100,
+            y: -100,
+            label: "1",
+            active: false,
+            color: "lightblue",
+        },
+        {
+            id: 2,
+            x: 200,
+            y: -200,
+            label: "2",
+            active: false,
+            color: "lightblue",
+        },
+        {
+            id: 3,
+            x: 300,
+            y: -100,
+            label: "3",
+            active: false,
+            color: "lightblue",
+        },
+        {
+            id: 4,
+            x: 200,
+            y: -300,
+            label: "4",
+            active: false,
+            color: "lightblue",
+        },
     ]);
 
     const edges = ref([
-        { id: 1, vertexId1: 1, vertexId2: 2, active: false },
-        { id: 2, vertexId1: 2, vertexId2: 3, active: false },
-        { id: 3, vertexId1: 1, vertexId2: 3, active: false },
-        { id: 4, vertexId1: 1, vertexId2: 4, active: false },
-        { id: 5, vertexId1: 2, vertexId2: 4, active: false },
-        { id: 6, vertexId1: 3, vertexId2: 4, active: false },
+        { id: 1, vertexId1: 1, vertexId2: 2, active: false, color: "red" },
+        { id: 2, vertexId1: 2, vertexId2: 3, active: false, color: "red" },
+        { id: 3, vertexId1: 1, vertexId2: 3, active: false, color: "red" },
+        { id: 4, vertexId1: 1, vertexId2: 4, active: false, color: "red" },
+        { id: 5, vertexId1: 2, vertexId2: 4, active: false, color: "red" },
+        { id: 6, vertexId1: 3, vertexId2: 4, active: false, color: "red" },
     ]);
 
     const faces = ref([]);
@@ -76,6 +104,9 @@ export const useGraphStore = defineStore("graph", () => {
             vertex.y =
                 (stageConfig.value.scaleY * stageConfig.value.height) / 2;
         }
+        if (vertex.color === null || vertex.color === undefined) {
+            vertex.color = "lightblue";
+        }
         vertices.value.push(vertex);
     };
 
@@ -94,6 +125,9 @@ export const useGraphStore = defineStore("graph", () => {
         }
         if (edge.active === null || edge.active === undefined) {
             edge.active = false;
+        }
+        if (edge.color === null || edge.color === undefined) {
+            edge.color = "red";
         }
         edges.value.push(edge);
     };

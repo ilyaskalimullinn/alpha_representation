@@ -146,6 +146,9 @@ document.addEventListener("click", closeContextMenu);
 // Make face labels visible
 const faceLabelsVisible = ref(false);
 
+// Make vertex labels visible
+const vertexLabelsVisible = ref(true);
+
 const faceLabelPositions = ref([]);
 watch(faces, (newValue) => {
     faceLabelPositions.value = [];
@@ -170,13 +173,30 @@ const setFaceActive = (face, active) => {
         edge.active = active;
     }
 };
+
+const stageRef = ref(null);
+
+const handleExport = () => {
+    const dataURL = stageRef.value.getNode().toDataURL({
+        pixelRatio: 2, // double resolution
+    });
+
+    const link = document.createElement("a");
+    link.download = "graph.png";
+    link.href = dataURL;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
 </script>
 
 <template>
     <div class="graph-container">
+        <button @click="handleExport()">Скачать изображение</button>
         <v-stage
             :config="stageConfig"
             @contextmenu.self="handleStageRightClick($event)"
+            ref="stageRef"
         >
             <v-layer ref="layer">
                 <v-line
@@ -189,7 +209,7 @@ const setFaceActive = (face, active) => {
                             graphStore.getVertexById(edge.vertexId2).x,
                             graphStore.getVertexById(edge.vertexId2).y,
                         ],
-                        stroke: edge.active ? 'purple' : 'red',
+                        stroke: edge.active ? 'purple' : edge.color,
                         strokeWidth: edge.active ? 7 : 5,
                         tension: 0.5,
                     }"
@@ -213,12 +233,13 @@ const setFaceActive = (face, active) => {
                     <v-circle
                         :config="{
                             radius: 20,
-                            fill: 'lightblue',
+                            fill: vertex.color,
                             stroke: vertex.active ? 'green' : 'blue',
                             strokeWidth: vertex.active ? 4 : 2,
                         }"
                     />
                     <v-text
+                        v-if="vertexLabelsVisible"
                         :config="{
                             x: -10,
                             y: 5,
@@ -354,6 +375,14 @@ const setFaceActive = (face, active) => {
                 name="toggle-faces-visible"
                 id="toggle-faces-visible-checkbox"
                 v-model="faceLabelsVisible"
+            />
+            <br />
+            <label for="toggle-vertex-visible-checkbox">Метки вершин</label>
+            <input
+                type="checkbox"
+                name="toggle-vertex-visible"
+                id="toggle-vertex-visible-checkbox"
+                v-model="vertexLabelsVisible"
             />
         </div>
     </div>
