@@ -25,7 +25,7 @@ const graphContainerWidth = `${props.stageConfig.width}px`;
 
 const graphStore = useGraphStore();
 
-graphStore.stageConfig.value = props.stageConfig;
+graphStore.stageConfig.value = props.stageConfig.value;
 
 const handleDrag = (vertex, event) => {
     vertex.x = event.target.x();

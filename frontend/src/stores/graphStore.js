@@ -54,7 +54,11 @@ export const useGraphStore = defineStore("graph", () => {
 
     const addVertex = (vertex) => {
         if (vertex.id === null || vertex.id === undefined) {
-            vertex.id = vertices.value[vertices.value.length - 1].id + 1;
+            if (vertices.value.length === 0) {
+                vertex.id = 1;
+            } else {
+                vertex.id = vertices.value[vertices.value.length - 1].id + 1;
+            }
         }
         if (vertex.label === null || vertex.label === undefined) {
             vertex.label = `${vertex.id}`;
@@ -82,7 +86,11 @@ export const useGraphStore = defineStore("graph", () => {
             edge.vertexId2 = v;
         }
         if (edge.id === null || edge.id === undefined) {
-            edge.id = edges.value[edges.value.length - 1].id + 1;
+            if (edges.value.length === 0) {
+                edge.id = 1;
+            } else {
+                edge.id = edges.value[edges.value.length - 1].id + 1;
+            }
         }
         if (edge.active === null || edge.active === undefined) {
             edge.active = false;
@@ -197,8 +205,10 @@ export const useGraphStore = defineStore("graph", () => {
     const buildVertices = async (adjMatrix) => {
         const data = await fetchVertexPositions(adjMatrix);
 
-        const width = stageConfig.width;
-        const height = stageConfig.height;
+        console.log(data);
+
+        const width = stageConfig.value.width;
+        const height = stageConfig.value.height;
 
         let positions = data.data.positions;
 
@@ -235,8 +245,8 @@ export const useGraphStore = defineStore("graph", () => {
             let y =
                 ((positions[i][1] - min_y) / (max_y - min_y)) * height_80 +
                 height_10;
-
-            addVertex({ x: x, y: y });
+            y *= stageConfig.value.scaleY;
+            addVertex({ x: x, y: y, id: i + 1 });
         }
     };
 

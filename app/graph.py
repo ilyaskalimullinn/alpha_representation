@@ -25,8 +25,6 @@ def calc_vertex_positions(adjacency_matrix: List[List[int]]) -> List[List[float]
         List[List[float]]: list of pairs of [x, y] - positions of vertices
     """
     graph = nx.from_numpy_array(np.array(adjacency_matrix))
-    pos = nx.planar_layout(graph)
-    pos_list = [None for _ in range(len(adjacency_matrix))]
     try:
         pos = nx.planar_layout(graph)
         pos_list = [None for _ in range(len(adjacency_matrix))]
