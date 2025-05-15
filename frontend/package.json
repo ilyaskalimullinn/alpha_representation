@@ -18,7 +18,8 @@
         "pinia": "^3.0.2",
         "vite-plugin-static-copy": "^2.3.1",
         "vue": "^3.5.13",
-        "vue-konva": "^3.2.0"
+        "vue-konva": "^3.2.0",
+        "vuedraggable": "^4.1.0"
     },
     "devDependencies": {
         "@vitejs/plugin-vue": "^5.2.2",

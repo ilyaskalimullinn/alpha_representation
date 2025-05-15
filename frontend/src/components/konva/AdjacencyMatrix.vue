@@ -1,37 +1,53 @@
 <template>
-    <h3>Матрица смежности</h3>
-    <table
-        v-if="graphStore.adjacencyMatrix !== null"
-        id="adjacency-matrix"
-        class="matrix"
-    >
-        <tr>
-            <th>Вершина</th>
-            <th
-                v-for="vertex in graphStore.vertices"
-                @mouseover="vertex.active = true"
-                @mouseleave="vertex.active = false"
+    <div class="container">
+        <div class="adjacency-matrix-container">
+            <h3>Матрица смежности</h3>
+            <table
+                v-if="graphStore.adjacencyMatrix !== null"
+                id="adjacency-matrix"
+                class="matrix"
             >
-                {{ vertex.label }}
-            </th>
-        </tr>
-        <tr v-for="(row, i) in graphStore.adjacencyMatrix">
-            <th
-                @mouseover="graphStore.vertices[i].active = true"
-                @mouseleave="graphStore.vertices[i].active = false"
-            >
-                {{ graphStore.vertices[i].label }}
-            </th>
+                <tr>
+                    <th>Вершина</th>
+                    <th
+                        v-for="vertex in graphStore.vertices"
+                        @mouseover="vertex.active = true"
+                        @mouseleave="vertex.active = false"
+                    >
+                        {{ vertex.label }}
+                    </th>
+                </tr>
+                <tr v-for="(row, i) in graphStore.adjacencyMatrix">
+                    <th
+                        @mouseover="graphStore.vertices[i].active = true"
+                        @mouseleave="graphStore.vertices[i].active = false"
+                    >
+                        {{ graphStore.vertices[i].label }}
+                    </th>
 
-            <td
-                v-for="(elem, j) in row"
-                @mouseover="setEdgeActive(i, j, true)"
-                @mouseleave="setEdgeActive(i, j, false)"
-            >
-                {{ elem }}
-            </td>
-        </tr>
-    </table>
+                    <td
+                        v-for="(elem, j) in row"
+                        @mouseover="setEdgeActive(i, j, true)"
+                        @mouseleave="setEdgeActive(i, j, false)"
+                    >
+                        {{ elem }}
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div>
+            <h3>Названия вершин</h3>
+            <ul>
+                <li
+                    v-for="vertex in graphStore.vertices"
+                    @mouseover="vertex.active = true"
+                    @mouseleave="vertex.active = false"
+                >
+                    <input type="text" v-model="vertex.label" />
+                </li>
+            </ul>
+        </div>
+    </div>
 </template>
 
 <script setup>
@@ -50,3 +66,11 @@ const setEdgeActive = (i, j, active) => {
     graphStore.edges[edgeIndex].active = active;
 };
 </script>
+
+<style scoped>
+.container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+</style>

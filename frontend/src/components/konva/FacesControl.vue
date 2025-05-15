@@ -10,12 +10,12 @@
             <th>Грань</th>
 
             <th
-                v-for="face in graphStore.faces"
+                v-for="(face, i) in graphStore.faces"
                 :key="`face_${face.id}`"
                 @mouseover="setFaceActive(face, true)"
                 @mouseleave="setFaceActive(face, false)"
             >
-                {{ face.id }}
+                {{ i + 1 }}
             </th>
         </tr>
 
@@ -27,7 +27,7 @@
                 @mouseover="setFaceActive(graphStore.faces[i], true)"
                 @mouseleave="setFaceActive(graphStore.faces[i], false)"
             >
-                {{ graphStore.faces[i].id }}
+                {{ i + 1 }}
             </th>
 
             <td
@@ -47,21 +47,29 @@
     </table>
 
     <h3>Список граней</h3>
-    <ul v-if="graphStore.faces.length > 0">
-        <li
-            v-for="face in graphStore.faces"
-            :key="`face_${face.id}`"
-            class="graph-face"
-            @mouseover="setFaceActive(face, true)"
-            @mouseleave="setFaceActive(face, false)"
-        >
-            {{ face.vertices.map((v) => v.id) }}
-        </li>
-    </ul>
+    <draggable
+        v-model="graphStore.faces"
+        item-key="id"
+        tag="ul"
+        v-if="graphStore.faces.length > 0"
+        @end="graphStore.findFacesMatrix()"
+    >
+        <template #item="{ element, index }">
+            <li
+                @mouseover="setFaceActive(element, true)"
+                @mouseleave="setFaceActive(element, false)"
+                class="graph-face"
+            >
+                {{ index + 1 }})
+                {{ element.vertices.map((v) => v.label).join(", ") }}
+            </li>
+        </template>
+    </draggable>
 </template>
 
 <script setup>
 import { useGraphStore } from "@/stores/graphStore";
+import draggable from "vuedraggable";
 
 const graphStore = useGraphStore();
 
