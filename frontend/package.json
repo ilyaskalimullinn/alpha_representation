@@ -15,6 +15,7 @@
         "datatables.net-vue3": "^3.0.4",
         "downloadjs": "^1.4.7",
         "konva": "^9.3.20",
+        "papaparse": "^5.5.2",
         "pinia": "^3.0.2",
         "vite-plugin-static-copy": "^2.3.1",
         "vue": "^3.5.13",

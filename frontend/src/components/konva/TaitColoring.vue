@@ -41,6 +41,20 @@
                 Количество: <span>{{ graphStore.coloring.taitAlpha }}</span>
             </p>
 
+            <button
+                @click="
+                    downloadCSV(
+                        detailRankDeterminantTable,
+                        detailRankDeterminantTableColumns.map(
+                            (item) => item.title
+                        ),
+                        'alpha_details.csv'
+                    )
+                "
+            >
+                Скачать CSV
+            </button>
+
             <DataTable
                 :columns="detailRankDeterminantTableColumns"
                 :data="detailRankDeterminantTable"
@@ -69,6 +83,21 @@
                     graphStore.coloring.taitAlphaNoDetail.numZeroRanks
                 }}</span>
             </p>
+
+            <button
+                @click="
+                    downloadCSV(
+                        noDetailRankDeterminantTable,
+                        noDetailRankDeterminantTableColumns.map(
+                            (item) => item.title
+                        ),
+                        'alpha_no_details.csv'
+                    )
+                "
+            >
+                Скачать CSV
+            </button>
+
             <DataTable
                 :columns="noDetailRankDeterminantTableColumns"
                 :data="noDetailRankDeterminantTable"
@@ -83,6 +112,7 @@ import { ref, computed } from "vue";
 import { useGraphStore } from "@/stores/graphStore";
 import DataTable from "datatables.net-vue3";
 import DataTablesCore from "datatables.net-dt";
+import { unparse } from "papaparse";
 
 DataTable.use(DataTablesCore);
 
@@ -218,7 +248,7 @@ const gaussSumString = (rank, det, numOfSums) => {
         if (powerThree == 1) {
             return `${numOfSums}`;
         }
-        return `${numOfSums} &frasl; ${powerThree}`;
+        return `${numOfSums} / ${powerThree}`;
     }
     // if rank is odd
     if (numOfSums === 1) {
@@ -228,25 +258,25 @@ const gaussSumString = (rank, det, numOfSums) => {
     }
 
     if (powerThree == 1) {
-        return `${numOfSums}i &radic; 3`;
+        return `${numOfSums}i sqrt(3)`;
     }
-    return `${numOfSums}i &frasl; ${powerThree} &radic; 3`;
+    return `${numOfSums}i / ${powerThree} sqrt(3)`;
 };
 
 const sumTwoGaussianSums = (a, b) => {
     if (a.includes("i")) {
         return "0";
     }
-    if (!a.includes("&frasl;")) {
-        a = a + "&frasl; 1";
+    if (!a.includes("/")) {
+        a = a + "/ 1";
         return sumTwoGaussianSums(a, b);
     }
-    if (!b.includes("&frasl;")) {
-        b = b + "&frasl; 1";
+    if (!b.includes("/")) {
+        b = b + "'' 1";
         return sumTwoGaussianSums(a, b);
     }
-    let frac1 = a.split("&frasl;");
-    let frac2 = b.split("&frasl;");
+    let frac1 = a.split("/");
+    let frac2 = b.split("/");
 
     frac1[0] = parseInt(frac1[0]);
     frac1[1] = parseInt(frac1[1]);
@@ -264,7 +294,7 @@ const sumTwoGaussianSums = (a, b) => {
         return `${newNominator}`;
     }
 
-    return `${newNominator} &frasl; ${newDenominator}`;
+    return `${newNominator} / ${newDenominator}`;
 };
 
 const calcGcd = function (a, b) {
@@ -273,6 +303,27 @@ const calcGcd = function (a, b) {
     }
 
     return calcGcd(b, a % b);
+};
+
+const downloadCSV = (data, columns, filename) => {
+    // Convert data to CSV format
+
+    let csv =
+        unparse({ fields: columns, data: [] }) +
+        unparse(data, { header: false });
+
+    // Create a download link
+    const link = document.createElement("a");
+    link.setAttribute(
+        "href",
+        "data:text/csv;charset=utf-8," + encodeURIComponent(csv)
+    );
+    link.setAttribute("download", filename); // Set the filename
+
+    // Programmatically trigger the download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link); // Clean up
 };
 </script>
 
