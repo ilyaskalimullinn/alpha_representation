@@ -5,13 +5,15 @@
 В будущем, возможно, добавлю докер-контейнер. Пока что в режиме `dev` нужно поставить виртуальное окружение и захостить
 через `uvicorn`.
 
-1. Создать виртуалку
+### Backend
+
+1. Создать виртуальное окружение
 
 ```shell
 python -m venv .venv
 ```
 
-2. Активировать виртуалку
+2. Активировать виртуальное окружение
 
 Linux:
 
@@ -35,4 +37,23 @@ pip install -r requirements.txt
 
 ```shell
 uvicorn src.main:app --reload
+```
+
+### Frontend
+
+```shell
+cd frontend
+npm i
+```
+
+Далее для билда проекта:
+
+```shell
+npm run build
+```
+
+Для разработки:
+
+```shell
+npm run watch
 ```
