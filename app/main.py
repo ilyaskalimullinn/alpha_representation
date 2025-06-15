@@ -72,6 +72,12 @@ async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
+# Static HTML page endpoint
+@app.get("/s_values", response_class=HTMLResponse)
+async def s_values(request: Request):
+    return templates.TemplateResponse("s_values.html", {"request": request})
+
+
 # REST API endpoint
 @app.post("/api/v1/health")
 async def health_check():

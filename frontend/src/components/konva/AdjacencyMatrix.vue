@@ -36,7 +36,7 @@
             </table>
         </div>
         <div>
-            <h3>Названия вершин</h3>
+            <h3>Названия вершин и фиксированные спины</h3>
             <ul>
                 <li
                     v-for="vertex in graphStore.vertices"

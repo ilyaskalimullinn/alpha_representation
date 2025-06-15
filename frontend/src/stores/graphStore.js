@@ -1,12 +1,13 @@
 import { defineStore } from "pinia";
-import { ref, watch, computed } from "vue";
-import { fetchFaces, fetchFacesMatrix } from "@/services/api";
+import { ref, computed } from "vue";
 import {
+    fetchFaces,
+    fetchFacesMatrix,
     fetchTaitAlphaRepresentation,
     fetchTaitAlphaRepresentationFixed,
     fetchTaitChromaticPolynomial,
     fetchVertexPositions,
-} from "../services/api";
+} from "@/services/api";
 
 export const useGraphStore = defineStore("graph", () => {
     const vertices = ref([

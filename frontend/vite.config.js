@@ -15,6 +15,7 @@ export default defineConfig({
                 main: resolve(__dirname, "pages/index.html"),
                 // Add other pages here
                 about: resolve(__dirname, "pages/about.html"),
+                s_values: resolve(__dirname, "pages/s_values.html"),
             },
             output: {
                 assetFileNames: (assetInfo) => {
