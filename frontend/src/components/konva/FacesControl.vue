@@ -5,6 +5,12 @@
     <button @click="graphStore.findFaces()">Найти грани в графе</button>
 
     <h3>Матрица граней</h3>
+    <button
+        @click="copyToClipboard(JSON.stringify(graphStore.facesMatrix))"
+        v-if="graphStore.facesMatrix.length > 0"
+    >
+        Копировать
+    </button>
     <table v-if="graphStore.facesMatrix.length > 0" class="matrix">
         <tr>
             <th>Грань</th>
@@ -69,6 +75,7 @@
 
 <script setup>
 import { useGraphStore } from "@/stores/graphStore";
+import { copyToClipboard } from "@/services/utils";
 import draggable from "vuedraggable";
 
 const graphStore = useGraphStore();
