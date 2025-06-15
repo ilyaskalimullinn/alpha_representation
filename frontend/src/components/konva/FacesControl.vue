@@ -13,46 +13,61 @@
     >
         Копировать
     </button>
-    <table v-if="graphStore.facesMatrixWithFreeSpins.length > 0" class="matrix">
-        <tr>
-            <th>Грань</th>
 
-            <th
-                v-for="(face, i) in graphStore.faces"
-                :key="`face_${face.id}`"
-                @mouseover="setFaceActive(face, true)"
-                @mouseleave="setFaceActive(face, false)"
-            >
-                {{ i + 1 }}
-            </th>
-        </tr>
-
-        <tr
-            v-for="(row, i) in graphStore.facesMatrixWithFreeSpins"
-            :key="`faces_matrix_i_${i}`"
+    <div class="matrix-container">
+        <table
+            v-if="graphStore.facesMatrixWithFreeSpins.length > 0"
+            class="matrix"
         >
-            <th
-                @mouseover="setFaceActive(graphStore.faces[i], true)"
-                @mouseleave="setFaceActive(graphStore.faces[i], false)"
-            >
-                {{ i + 1 }}
-            </th>
+            <tr>
+                <th>Грань</th>
 
-            <td
-                v-for="(elem, j) in row"
-                @mouseover="
-                    setFaceActive(graphStore.faces[i], true);
-                    setFaceActive(graphStore.faces[j], true);
-                "
-                @mouseleave="
-                    setFaceActive(graphStore.faces[i], false);
-                    setFaceActive(graphStore.faces[j], false);
-                "
+                <th
+                    v-for="(face, i) in graphStore.faces"
+                    :key="`face_${face.id}`"
+                    @mouseover="setFaceActive(face, true)"
+                    @mouseleave="setFaceActive(face, false)"
+                >
+                    {{ i + 1 }}
+                </th>
+            </tr>
+
+            <tr
+                v-for="(row, i) in graphStore.facesMatrixWithFreeSpins"
+                :key="`faces_matrix_i_${i}`"
             >
-                {{ getSigma(elem) }}
-            </td>
-        </tr>
-    </table>
+                <th
+                    @mouseover="setFaceActive(graphStore.faces[i], true)"
+                    @mouseleave="setFaceActive(graphStore.faces[i], false)"
+                >
+                    {{ i + 1 }}
+                </th>
+
+                <td
+                    v-for="(elem, j) in row"
+                    @mouseover="
+                        setFaceActive(graphStore.faces[i], true);
+                        setFaceActive(graphStore.faces[j], true);
+                    "
+                    @mouseleave="
+                        setFaceActive(graphStore.faces[i], false);
+                        setFaceActive(graphStore.faces[j], false);
+                    "
+                >
+                    {{ getSigma(elem) }}
+                </td>
+            </tr>
+        </table>
+
+        <table v-if="graphStore.lFixed.length > 0" class="l_fix matrix">
+            <tr>
+                <th>l_fixed</th>
+            </tr>
+            <tr v-for="elem in graphStore.lFixed">
+                <td>{{ elem }}</td>
+            </tr>
+        </table>
+    </div>
 
     <h3>Список граней</h3>
     <draggable
@@ -106,5 +121,14 @@ const getSigma = (vertexIds) => {
     cursor: pointer;
     background-color: lightgrey;
     transition: 0.2s;
+}
+
+.matrix-container {
+    display: flex;
+    flex-direction: row;
+}
+
+.l_fix {
+    margin-left: 10px;
 }
 </style>

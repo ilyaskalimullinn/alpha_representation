@@ -332,8 +332,11 @@ const fixedTableRows = computed(() => {
 });
 
 const fixedErrorTableColumns = computed(() => {
-    const cols = [...graphStore.vertices.map((v) => v.label), "l_fix"];
-    console.log(cols);
+    const cols = [];
+    for (let i = 1; i <= graphStore.faces.length; i++) {
+        cols.push(`Грань ${i}`);
+    }
+    cols.push("l_fix");
     return cols;
 });
 

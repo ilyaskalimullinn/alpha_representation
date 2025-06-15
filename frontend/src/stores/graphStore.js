@@ -131,6 +131,34 @@ export const useGraphStore = defineStore("graph", () => {
         return m;
     });
 
+    const lFixed = computed(() => {
+        if (
+            fixedVertices.value.length === 0 ||
+            faces.value.length === 0 ||
+            facesMatrix.value.length === 0
+        ) {
+            return [];
+        }
+
+        const l = [];
+        for (let face of faces.value) {
+            let s = 0;
+            for (let vertex of face.vertices) {
+                let spin = vertex.fixedSpin;
+                if (spin !== "") {
+                    s += spin;
+                }
+            }
+            s = s % 3;
+            if (s === 2) {
+                s = -1;
+            }
+            l.push(s);
+        }
+
+        return l;
+    });
+
     const activeVertexId = ref(null);
     const activeEdgeId = ref(null);
 
@@ -164,7 +192,7 @@ export const useGraphStore = defineStore("graph", () => {
             vertex.color = "lightblue";
         }
         if (vertex.fixedSpin === undefined || vertex.fixedSpin === null) {
-            vertex.fixedSpin = null;
+            vertex.fixedSpin = "";
         }
         vertices.value.push(vertex);
     };
@@ -212,6 +240,8 @@ export const useGraphStore = defineStore("graph", () => {
     };
 
     const deleteVertex = (vertex) => {
+        faces.value = [];
+        facesMatrix.value = [];
         // Remove the vertex
         vertices.value = vertices.value.filter((v) => v.id !== vertex.id);
 
@@ -221,6 +251,8 @@ export const useGraphStore = defineStore("graph", () => {
         );
     };
     const deleteEdge = (edge) => {
+        faces.value = [];
+        facesMatrix.value = [];
         edges.value = edges.value.filter((e) => e.id !== edge.id);
     };
 
@@ -434,7 +466,8 @@ export const useGraphStore = defineStore("graph", () => {
 
         const fixedSpins = {};
         for (let vertex of fixedVertices.value) {
-            fixedSpins[parseInt(vertex.id)] = parseInt(vertex.fixedSpin);
+            let ind = vertices.value.indexOf(vertex);
+            fixedSpins[ind] = parseInt(vertex.fixedSpin);
         }
 
         const resp = await fetchTaitAlphaRepresentationFixed(
@@ -479,6 +512,7 @@ export const useGraphStore = defineStore("graph", () => {
         faces,
         facesMatrix,
         facesMatrixWithFreeSpins,
+        lFixed,
         fixedVertices,
         freeVertices,
         coloring,
