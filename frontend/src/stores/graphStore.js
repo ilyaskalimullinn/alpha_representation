@@ -62,6 +62,7 @@ export const useGraphStore = defineStore("graph", () => {
         taitAlphaDetail: {
             determinantList: [],
             rankList: [],
+            gaussSumList: [],
         },
         taitAlphaNoDetail: {
             numEvenRanks: 0,
@@ -350,6 +351,7 @@ export const useGraphStore = defineStore("graph", () => {
         if (detail) {
             coloring.value.taitAlphaDetail.determinantList = data.det_list;
             coloring.value.taitAlphaDetail.rankList = data.rank_list;
+            coloring.value.taitAlphaDetail.gaussSumList = data.gauss_sum_list;
         } else {
             coloring.value.taitAlphaNoDetail.numEvenRanks = data.n_even_ranks;
             coloring.value.taitAlphaNoDetail.numOddRanks = data.n_odd_ranks;

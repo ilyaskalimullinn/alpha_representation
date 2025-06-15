@@ -114,10 +114,18 @@ async def calc_tait_0(request: CalcTait0Request):
     faces_matrix = request.faces_matrix
     detail = request.detail
     if detail:
-        tait_0, det_list, rank_list = calc_tait_0_in_detail(faces_matrix)
+        tait_0, gauss_sum_list, det_list, rank_list = calc_tait_0_in_detail(
+            faces_matrix
+        )
+        gauss_sum_list = [str(val) for val in gauss_sum_list]
         return {
             "status": "ok",
-            "data": {"tait_0": tait_0, "det_list": det_list, "rank_list": rank_list},
+            "data": {
+                "tait_0": tait_0,
+                "gauss_sum_list": gauss_sum_list,
+                "det_list": det_list,
+                "rank_list": rank_list,
+            },
         }
     else:
         tait_0, rank_and_det_counts, n_even_ranks, n_odd_ranks, n_zero_ranks = (

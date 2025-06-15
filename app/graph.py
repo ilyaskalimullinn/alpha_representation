@@ -285,7 +285,7 @@ def calc_rank_f3(matrix: np.ndarray) -> int:
 
 def calc_tait_0_in_detail(
     faces_matrix: List[List[List[int]]],
-) -> Tuple[int, List[int], List[int]]:
+) -> Tuple[int, List[int], List[int], List[int]]:
     """
     Given Faces Matrix of a planar cubic graph $G$, calculate number of Tait colorings
     using $\\alpha$-representation.
@@ -297,11 +297,12 @@ def calc_tait_0_in_detail(
             has size $(n+2) \times (n+2)$.
 
     Returns:
-        Tuple[int, List[int], List[int]]:
+        Tuple[int, List[int], List[int], List[int]]:
             1) Number of Tait colorings
             2) List of largest nonzero principal minors of Faces Matrix
                 for every vector of spins
             3) List of ranks of Faces Matrix for every vector of spins
+            4) List of gaussian sums
     """
     n_faces = len(faces_matrix)  # n + 2
     n_vertices = 2 * (n_faces - 2)  # 2n
@@ -315,25 +316,25 @@ def calc_tait_0_in_detail(
                     masks_tensor[v][f2][f1] = 1
     all_sigma = itertools.product([-1, 1], repeat=n_vertices)
 
-    n_tait_0 = 0
     det_minor_list = []
     rank_list = []
+    gauss_list = []
 
     for sigma in all_sigma:
         sigma = np.array(sigma).reshape(-1, 1, 1)
         faces_matrix_filled = np.sum(masks_tensor * sigma, axis=0)
         gauss, det_minor, rank, _ = gaussian_sum(faces_matrix_filled)
-        n_tait_0 += gauss
+        gauss_list.append(gauss)
         det_minor_list.append(det_minor)
         rank_list.append(rank)
 
-    n_tait_0 = sympy.nsimplify(n_tait_0)
+    n_tait_0 = sympy.nsimplify(sum(gauss_list))
 
     assert isinstance(
         n_tait_0, sympy.core.numbers.Integer
     ), "Calculated sum of Tait colorings is not integer"
 
-    return int(n_tait_0), det_minor_list, rank_list
+    return int(n_tait_0), gauss_list, det_minor_list, rank_list
 
 
 def calc_tait_0_aggregated(

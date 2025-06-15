@@ -55,11 +55,21 @@
                 Скачать CSV
             </button>
 
-            <DataTable
+            <!-- <DataTable
                 :columns="detailRankDeterminantTableColumns"
                 :data="detailRankDeterminantTable"
                 class="matrix"
-            />
+            /> -->
+
+            <DataTable :data="detailedTableRows" class="matrix">
+                <thead>
+                    <tr>
+                        <th v-for="columnName in detailedTableColumns">
+                            {{ columnName }}
+                        </th>
+                    </tr>
+                </thead>
+            </DataTable>
         </div>
 
         <div
@@ -136,39 +146,26 @@ const generateAllSigma = (n) => {
 
     return result;
 };
-const detailRankDeterminantTableColumns = computed(() => {
-    const cols = [
-        { data: "rank", title: "Ранг" },
-        { data: "det", title: "Минор" },
-        { data: "gaussSum", title: "Гауссова сумма" },
+const detailedTableColumns = computed(() => {
+    return [
+        "Ранг",
+        "Минор",
+        "Гауссова сумма",
+        ...graphStore.vertices.map((v) => v.label),
     ];
-    for (let vertex of graphStore.vertices) {
-        cols.push({ data: `vertex_${vertex.id}`, title: vertex.label });
-    }
-
-    return cols;
 });
-const detailRankDeterminantTable = computed(() => {
+const detailedTableRows = computed(() => {
     const allSigma = generateAllSigma(graphStore.vertices.length);
 
     const table = [];
     for (let i = 0; i < allSigma.length; i++) {
-        let rank = graphStore.coloring.taitAlphaDetail.rankList[i];
-        let det = graphStore.coloring.taitAlphaDetail.determinantList[i];
-        let val = {
-            rank: rank,
-            det: det,
-            gaussSum: gaussSumString(rank, det, 1),
-        };
-        for (
-            let vertexIndex = 0;
-            vertexIndex < allSigma[i].length;
-            vertexIndex++
-        ) {
-            let vertexId = graphStore.vertices[vertexIndex].id;
-            val[`vertex_${vertexId}`] = allSigma[i][vertexIndex];
-        }
-        table.push(val);
+        let row = [
+            graphStore.coloring.taitAlphaDetail.rankList[i],
+            graphStore.coloring.taitAlphaDetail.determinantList[i],
+            graphStore.coloring.taitAlphaDetail.gaussSumList[i],
+            ...allSigma[i],
+        ];
+        table.push(row);
     }
     return table;
 });
