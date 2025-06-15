@@ -516,11 +516,20 @@ export const useGraphStore = defineStore("graph", () => {
             await findFaces();
         }
 
-        const resp = await fetchHeawood(
-            faces.value.map((f) =>
-                f.vertices.map((v) => vertices.value.indexOf(v))
-            )
+        const facesList = faces.value.map((f) =>
+            f.vertices.map((v) => vertices.value.indexOf(v))
         );
+
+        let fixedSpins = {};
+        for (let vertex of fixedVertices.value) {
+            let ind = vertices.value.indexOf(vertex);
+            fixedSpins[ind] = parseInt(vertex.fixedSpin);
+        }
+        if (Object.keys(fixedSpins).length === 0) {
+            fixedSpins = null;
+        }
+
+        const resp = await fetchHeawood(facesList, fixedSpins);
 
         const data = resp.data;
 

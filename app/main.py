@@ -21,6 +21,7 @@ from app.graph import (
     faces_matrix_to_dual_adjacency_matrix,
     calc_s_values,
     calc_heawood,
+    calc_heawood_fixed,
 )
 
 
@@ -267,10 +268,11 @@ async def find_s_values(request: FindSValuesRequest):
 @app.post("/api/v1/calc_heawood")
 async def find_heawood(request: HeawoodRequest):
     fixed_spins = request.fixed_spins
-    if fixed_spins is not None:
-        raise NotImplementedError("Not yet")
+    if fixed_spins is None:
+        configurations = calc_heawood(request.faces)
+    else:
+        configurations = calc_heawood_fixed(request.faces, fixed_spins)
 
-    configurations = calc_heawood(request.faces)
     return {
         "status": "ok",
         "data": {"configurations": configurations},

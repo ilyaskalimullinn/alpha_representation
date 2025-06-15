@@ -534,6 +534,52 @@ def calc_heawood(faces: List[List[int]]) -> List[int]:
     return good_sigma_list
 
 
+def calc_heawood_fixed(
+    faces: List[List[int]], fixed_spins: Dict[int, int]
+) -> List[int]:
+    n_faces = len(faces)  # n + 2
+    n_vertices = 2 * (n_faces - 2)  # 2n
+    good_sigma_list = []
+
+    free_vertices = [v for v in range(n_vertices) if v not in fixed_spins]
+
+    faces_free = []
+    faces_fixed_sums = []
+    for i in range(n_faces):
+        faces[i] = list(set(faces[i]))
+        faces_free.append(
+            [free_vertices.index(v) for v in faces[i] if v not in fixed_spins]
+        )
+        faces_fixed_sums.append(
+            sum([fixed_spins[v] for v in faces[i] if v in fixed_spins])
+        )
+
+    n_fixed_vertices = len(fixed_spins.keys())
+    n_free_vertices = n_vertices - n_fixed_vertices
+
+    for sigma_free in itertools.product([-1, 1], repeat=n_free_vertices):
+        bad_sigma = False
+        for face, face_fixed in zip(faces_free, faces_fixed_sums):
+            s = (sum(sigma_free[v] for v in face) + face_fixed) % 3
+            if s != 0:
+                bad_sigma = True
+                break
+        if bad_sigma:
+            continue
+
+        # this is good configuration, so add it
+        sigma = []
+        i = 0
+        for v in range(n_vertices):
+            if v in fixed_spins:
+                sigma.append(fixed_spins[v])
+            else:
+                sigma.append(sigma_free[i])
+                i += 1
+        good_sigma_list.append(sigma)
+    return good_sigma_list
+
+
 def faces_matrix_to_dual_adjacency_matrix(
     faces_matrix: List[List[List[int]]],
 ) -> List[List[int]]:
