@@ -1,7 +1,6 @@
 from typing import List, Tuple, Dict, Any
 import math
 import itertools
-import fractions
 
 import numpy as np
 import networkx as nx
@@ -358,37 +357,56 @@ def calc_tait_0_aggregated(
     n_even_ranks = 0
     n_odd_ranks = 0
 
-    rank_and_det_counts = {}
+    data = {}  # dict keys are tuples: (det_minor, rank, gauss_sum)
 
     for sigma in all_sigma:
         sigma = np.array(sigma).reshape(-1, 1, 1)
         faces_matrix_filled = np.sum(masks * sigma, axis=0)
-        det_minor, rank, _ = largest_nonzero_principal_minor(faces_matrix_filled)
+        gauss_sum, det_minor, rank, _ = gaussian_sum(faces_matrix_filled)
+
+        ind = (det_minor, rank, gauss_sum)
+        if ind not in data:
+            # add this entry if it is not yet present
+            data[ind] = 0
+
+        # add this count
+        data[ind] += 1
+
+        n_tait_0 += gauss_sum
 
         if rank == 0:
-            n_tait_0 += 1
             n_zero_ranks += 1
-            continue
-
-        if rank % 2 == 1:
+        elif rank % 2 == 1:
             n_odd_ranks += 1
         else:
             # rank is even, non-zero
             n_even_ranks += 1
-            n_tait_0 += det_minor * (fractions.Fraction(-1, 3) ** (rank // 2))
 
-        if rank not in rank_and_det_counts:
-            rank_and_det_counts[rank] = [0, 0]
+    n_tait_0 = sympy.nsimplify(n_tait_0)
+    assert isinstance(
+        n_tait_0, sympy.core.numbers.Integer
+    ), "Calculated sum of Tait colorings is not integer"
 
-        index = 0 if det_minor == -1 else 1
-        rank_and_det_counts[rank][index] += 1
+    data_rows = [
+        [det_minor, rank, gauss_sum, num, gauss_sum * num]
+        for (det_minor, rank, gauss_sum), num in data.items()
+    ]
 
-    assert (
-        n_tait_0.numerator % n_tait_0.denominator == 0
-    ), f"Calculated sum of Tait colorings is not integer, got {n_tait_0}"
+    det_minors, ranks, gauss_sums, nums, total_gauss_sums = zip(*data_rows)
+
     n_tait_0 = int(n_tait_0)
 
-    return n_tait_0, rank_and_det_counts, n_even_ranks, n_odd_ranks, n_zero_ranks
+    return (
+        n_tait_0,
+        n_even_ranks,
+        n_odd_ranks,
+        n_zero_ranks,
+        det_minors,
+        ranks,
+        gauss_sums,
+        nums,
+        total_gauss_sums,
+    )
 
 
 def calc_tait_0_dual_chromatic(faces_adjacency_matrix: List[List[int]]) -> int:

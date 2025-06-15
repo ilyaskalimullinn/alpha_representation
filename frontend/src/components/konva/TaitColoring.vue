@@ -44,22 +44,14 @@
             <button
                 @click="
                     downloadCSV(
-                        detailRankDeterminantTable,
-                        detailRankDeterminantTableColumns.map(
-                            (item) => item.title
-                        ),
+                        detailedTableRows,
+                        detailedTableColumns,
                         'alpha_details.csv'
                     )
                 "
             >
                 Скачать CSV
             </button>
-
-            <!-- <DataTable
-                :columns="detailRankDeterminantTableColumns"
-                :data="detailRankDeterminantTable"
-                class="matrix"
-            /> -->
 
             <DataTable :data="detailedTableRows" class="matrix">
                 <thead>
@@ -75,10 +67,8 @@
         <div
             class="no-detail block"
             v-if="
-                Object.keys(
-                    graphStore.coloring.taitAlphaNoDetail
-                        .rankAndDeterminantCounts
-                ).length > 0
+                Object.keys(graphStore.coloring.taitAlphaNoDetail.rankList)
+                    .length > 0
             "
         >
             <p>Не подробные статистики</p>
@@ -97,10 +87,8 @@
             <button
                 @click="
                     downloadCSV(
-                        noDetailRankDeterminantTable,
-                        noDetailRankDeterminantTableColumns.map(
-                            (item) => item.title
-                        ),
+                        noDetailsTableRows,
+                        noDetailsTableColumns,
                         'alpha_no_details.csv'
                     )
                 "
@@ -108,11 +96,15 @@
                 Скачать CSV
             </button>
 
-            <DataTable
-                :columns="noDetailRankDeterminantTableColumns"
-                :data="noDetailRankDeterminantTable"
-                class="matrix data-table"
-            />
+            <DataTable :data="noDetailsTableRows" class="matrix data-table">
+                <thead>
+                    <tr>
+                        <th v-for="columnName in noDetailsTableColumns">
+                            {{ columnName }}
+                        </th>
+                    </tr>
+                </thead>
+            </DataTable>
         </div>
     </div>
 </template>
@@ -170,137 +162,31 @@ const detailedTableRows = computed(() => {
     return table;
 });
 
-const noDetailRankDeterminantTableColumns = [
-    { data: "rank", title: "Ранг матрицы" },
-    { data: "det", title: "Значение минора" },
-    { data: "numExamples", title: "Количество примеров" },
-    { data: "gaussSum", title: "Гауссова сумма в этом случае" },
-    { data: "gaussSumTotal", title: "Сумма гауссовых сумм" },
+const noDetailsTableColumns = [
+    "Ранг матрицы",
+    "Значение минора",
+    "Количество примеров",
+    "Гауссова сумма в этом случае",
+    "Сумма гауссовых сумм",
 ];
 
-const noDetailRankDeterminantTable = computed(() => {
-    const arrayOfRanks = Object.keys(
-        graphStore.coloring.taitAlphaNoDetail.rankAndDeterminantCounts
-    );
-    arrayOfRanks.sort((rank1, rank2) => {
-        const isEven1 = rank1 % 2 === 0;
-        const isEven2 = rank2 % 2 === 0;
-
-        // if both are even or both are odd, just compare
-        if (isEven1 === isEven2) {
-            return rank1 - rank2;
-        }
-
-        // if first is even, second is odd
-        if (isEven1) {
-            return -1;
-        }
-
-        // if first is odd, second is even
-        return 1;
-    });
-
-    const table = [];
-    for (let rank of arrayOfRanks) {
-        for (let det of [-1, 1]) {
-            let ind = det === 1 ? 1 : 0;
-            let numExamples =
-                graphStore.coloring.taitAlphaNoDetail.rankAndDeterminantCounts[
-                    rank
-                ][ind];
-            let val = {
-                rank: rank,
-                det: det,
-                numExamples: numExamples,
-                gaussSum: gaussSumString(rank, det, 1),
-                gaussSumTotal: gaussSumString(rank, det, numExamples),
-            };
-            table.push(val);
-        }
+const noDetailsTableRows = computed(() => {
+    const rows = [];
+    for (
+        let i = 0;
+        i < graphStore.coloring.taitAlphaNoDetail.rankList.length;
+        i++
+    ) {
+        rows.push([
+            graphStore.coloring.taitAlphaNoDetail.rankList[i],
+            graphStore.coloring.taitAlphaNoDetail.determinantList[i],
+            graphStore.coloring.taitAlphaNoDetail.numOfOccurances[i],
+            graphStore.coloring.taitAlphaNoDetail.gaussSumList[i],
+            graphStore.coloring.taitAlphaNoDetail.totalGaussSumList[i],
+        ]);
     }
-
-    return table;
+    return rows;
 });
-
-const gaussSumString = (rank, det, numOfSums) => {
-    if (rank == 0) {
-        return "1";
-    }
-
-    // we need to get (-1/3)^(r/2)
-    let rank_half = Math.floor(rank / 2);
-
-    let plusOrMinusOne = rank_half % 2 == 0 ? 1 : -1;
-    plusOrMinusOne = plusOrMinusOne * det;
-
-    let powerThree = Math.pow(3, rank_half);
-
-    let gcd = calcGcd(numOfSums, powerThree);
-
-    numOfSums = (numOfSums / gcd) * plusOrMinusOne;
-    powerThree = powerThree / gcd;
-
-    // if rank is even
-    if (rank % 2 == 0) {
-        if (powerThree == 1) {
-            return `${numOfSums}`;
-        }
-        return `${numOfSums} / ${powerThree}`;
-    }
-    // if rank is odd
-    if (numOfSums === 1) {
-        numOfSums = "";
-    } else if (numOfSums === -1) {
-        numOfSums = "-";
-    }
-
-    if (powerThree == 1) {
-        return `${numOfSums}i sqrt(3)`;
-    }
-    return `${numOfSums}i / ${powerThree} sqrt(3)`;
-};
-
-const sumTwoGaussianSums = (a, b) => {
-    if (a.includes("i")) {
-        return "0";
-    }
-    if (!a.includes("/")) {
-        a = a + "/ 1";
-        return sumTwoGaussianSums(a, b);
-    }
-    if (!b.includes("/")) {
-        b = b + "'' 1";
-        return sumTwoGaussianSums(a, b);
-    }
-    let frac1 = a.split("/");
-    let frac2 = b.split("/");
-
-    frac1[0] = parseInt(frac1[0]);
-    frac1[1] = parseInt(frac1[1]);
-    frac2[0] = parseInt(frac2[0]);
-    frac2[1] = parseInt(frac2[1]);
-
-    let newDenominator = frac1[1] * frac2[1];
-    let newNominator = frac1[0] * frac2[1] + frac2[0] * frac1[1];
-
-    let gcd = calcGcd(newNominator, newDenominator);
-    newNominator /= gcd;
-    newDenominator /= gcd;
-
-    if (newDenominator === 1) {
-        return `${newNominator}`;
-    }
-
-    return `${newNominator} / ${newDenominator}`;
-};
-
-const calcGcd = function (a, b) {
-    if (!b) {
-        return a;
-    }
-
-    return calcGcd(b, a % b);
-};
 
 const downloadCSV = (data, columns, filename) => {
     // Convert data to CSV format

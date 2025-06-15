@@ -68,7 +68,11 @@ export const useGraphStore = defineStore("graph", () => {
             numEvenRanks: 0,
             numOddRanks: 0,
             numZeroRanks: 0,
-            rankAndDeterminantCounts: [],
+            rankList: [],
+            determinantList: [],
+            gaussSumList: [],
+            numOfOccurances: [],
+            totalGaussSumList: [],
         },
     };
 
@@ -356,8 +360,12 @@ export const useGraphStore = defineStore("graph", () => {
             coloring.value.taitAlphaNoDetail.numEvenRanks = data.n_even_ranks;
             coloring.value.taitAlphaNoDetail.numOddRanks = data.n_odd_ranks;
             coloring.value.taitAlphaNoDetail.numZeroRanks = data.n_zero_ranks;
-            coloring.value.taitAlphaNoDetail.rankAndDeterminantCounts =
-                data.rank_and_det_counts;
+            coloring.value.taitAlphaNoDetail.rankList = data.ranks;
+            coloring.value.taitAlphaNoDetail.determinantList = data.det_minors;
+            coloring.value.taitAlphaNoDetail.gaussSumList = data.gauss_sums;
+            coloring.value.taitAlphaNoDetail.numOfOccurances = data.nums;
+            coloring.value.taitAlphaNoDetail.totalGaussSumList =
+                data.total_gauss_sums;
         }
     };
 

@@ -128,17 +128,31 @@ async def calc_tait_0(request: CalcTait0Request):
             },
         }
     else:
-        tait_0, rank_and_det_counts, n_even_ranks, n_odd_ranks, n_zero_ranks = (
-            calc_tait_0_aggregated(faces_matrix)
-        )
+        (
+            n_tait_0,
+            n_even_ranks,
+            n_odd_ranks,
+            n_zero_ranks,
+            det_minors,
+            ranks,
+            gauss_sums,
+            nums,
+            total_gauss_sums,
+        ) = calc_tait_0_aggregated(faces_matrix)
+        gauss_sums = [str(val) for val in gauss_sums]
+        total_gauss_sums = [str(val) for val in total_gauss_sums]
         return {
             "status": "ok",
             "data": {
-                "tait_0": tait_0,
-                "rank_and_det_counts": rank_and_det_counts,
+                "tait_0": n_tait_0,
                 "n_even_ranks": n_even_ranks,
                 "n_odd_ranks": n_odd_ranks,
                 "n_zero_ranks": n_zero_ranks,
+                "det_minors": det_minors,
+                "ranks": ranks,
+                "gauss_sums": gauss_sums,
+                "nums": nums,
+                "total_gauss_sums": total_gauss_sums,
             },
         }
 
