@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Any
 import math
 import itertools
 import fractions
@@ -9,6 +9,22 @@ import sympy
 
 
 i_div_sqrt_3 = sympy.I / sympy.sqrt(3)
+two_pi_i_3 = 2 * sympy.pi * sympy.I / 3
+F3 = sympy.GF(3)
+
+
+def calc_chi(x: int | Any) -> Any:
+    """
+    Calculate function $\\chi(x) \\equiv \\exp(2\\pi i x/3)$, i.e. a non-trivial
+    homomorphism from $\\mathbb{F}_3$ into the unit circle.
+
+    Args:
+        x (int | Any): value from $\\mathbb{F}_3$, i.e. either -1, 0 or 1.
+
+    Returns:
+        Any: sympy exponent value
+    """
+    return sympy.exp(two_pi_i_3 * x)
 
 
 def calc_vertex_positions(adjacency_matrix: List[List[int]]) -> List[List[float]]:
@@ -138,6 +154,36 @@ def calc_rotation(pos0: List[float], pos1: List[float], pos2: List[float]) -> fl
 
 
 def build_faces_matrix(faces: List[List[int]]) -> List[List[List[int]]]:
+    """
+    Build FacesMatrix from list of faces of a planar cubic graph.
+
+    Example:
+    ```
+    faces = [
+        [0, 1, 2],
+        [0, 1, 3],
+        [1, 2, 3],
+        [0, 2, 3]
+    ]
+    ```
+    These are all faces of graph $K_4$ with vertices 0,1,2,3
+    ```
+    faces_matrix = [
+        [[0,1,2], [0,1], [1,2], [0,2]],
+        [[0,1], [0,1,3], [1,3], [0,3]],
+        [[1,2], [1,3], [1,2,3], [2,3]],
+        [[0,2], [0,3], [2,3], [0,2,3]]
+    ]
+    ```
+
+    Args:
+        faces (List[List[int]]): a list of faces, each face is a list of
+            vertices in that face
+
+    Returns:
+        List[List[List[int]]]: Faces Matrix `fm`, where `fm[i][j]` is
+            a list of all vertices that are present both in face `i` and face `j`
+    """
     n_faces = len(faces)
     matrix = [[None for _ in range(n_faces)] for _ in range(n_faces)]
     for i, face in enumerate(faces):
@@ -151,45 +197,122 @@ def build_faces_matrix(faces: List[List[int]]) -> List[List[List[int]]]:
     return matrix
 
 
-def largest_nonzero_principal_minor(matrix: np.ndarray) -> Tuple[int, int]:
+def largest_nonzero_principal_minor(matrix: np.ndarray) -> Tuple[int, int, List[int]]:
+    """
+    Find largest non-zero principal minor of a matrix $n \times n$
+    over the field $\\mathbb{F}_3$.
+
+    Example:
+    ```
+    matrix = np.array([
+        [-1, 1, 0, 0],
+        [1, -1, 0, 0],
+        [0, 0, 1, -1],
+        [0, 0, -1, 1]
+    ])
+    ```
+    There are two largest non-zero principal minors (submatrices with indices [0, 3] or [1, 2]),
+    both have value -1 (for Faces Matrix all largest non-zero principal minors have the same value).
+
+    **Warning**: if a matrix has rank 0, the value of a minor is considered 1.
+
+    Args:
+        matrix (np.ndarray): matrix of values over $\\mathbb{F}_3$, i.e. -1, 0 or 1
+
+    Returns:
+        Tuple[int, int, List[int]]: value of the minor, rank of the submatrix (minor) and
+            list of indices that form this submatrix (minor)
+    """
     n = matrix.shape[0]
 
-    # Определитель матрицы граней всегда равен нулю, уменьшаем размер матрицы
+    # If matrix is non-singular, return whole matrix
+    det_minor = int(round(np.linalg.det(matrix))) % 3
+    if det_minor != 0:
+        if det_minor == 2:
+            det_minor = -1
+        return det_minor, n, list(range(n))
+
+    # If matrix is singular, find the set of rows that form non-zero minor
     for rank in range(n - 1, 0, -1):
-        # Генерируем все возможные комбинации строк и столбцов для минора размера rank
+        # Generate combination of indices of a size `rank``
         for rows in itertools.combinations(range(n), rank):
-            # Создаем минор
+
             minor = matrix[np.ix_(rows, rows)]
-            # minor = matrix[rows, rows]
-            # Проверяем определитель минора
+
             det_minor = int(round(np.linalg.det(minor))) % 3
             if det_minor != 0:
                 if det_minor == 2:
                     det_minor = -1
-                return det_minor, rank
-    return 0, 0
+                return det_minor, rank, list(rows)
+    # If matrix only has values '0', we consider its minor = 1, but rank is still 0
+    return 1, 0, []
 
 
-def gaussian_sum(matrix: np.ndarray) -> Tuple[sympy.Basic, int, int]:
-    det_minor, rank = largest_nonzero_principal_minor(matrix)
+def gaussian_sum(matrix: np.ndarray) -> Tuple[sympy.Basic, int, int, List[int]]:
+    """
+    Calc normalized gaussian sum of a matrix $n \\times n$ over the field $\\mathbb{F}_3$:
+    $$
+    \\Gau'(M) = \\frac{1}{3^n} \\sum_{k \\in \\mathbb{F}_3^n} \\chi\\left( k^T M k \\right)
+    $$
+    It can also be calculated by the following formula:
+    $$
+    \\Gau'(M) = {\\det}'M \\left[ \\frac{i}{\\sqrt 3} \\right]^{\\rank M},
+    $$
+    where ${\\det}'M$ is the largest nonzero principal minor of a matrix M
+    (if it only has values 0, this value is considered = 1), $\\rank M$ is the rank of matrix M
+
+    Args:
+        matrix (np.ndarray): $n \\times n$ over the field $\\mathbb{F}_3$
+
+    Returns:
+        Tuple[sympy.Basic, int, int, List[int]]:
+            1) Gaussian sum value
+            2) Largest nonzero principal minor
+            3) Rank of M
+            4) List of indices that form largest nonzero principal minor
+    """
+    det_minor, rank, rows = largest_nonzero_principal_minor(matrix)
     if rank == 0:
         return 1, det_minor, rank
-    return det_minor * (i_div_sqrt_3**rank), det_minor, rank
+    return det_minor * (i_div_sqrt_3**rank), det_minor, rank, rows
+
+
+def calc_rank_f3(matrix: np.ndarray) -> int:
+    m = [[F3(elem) for elem in row] for row in matrix]
+    m = sympy.polys.matrices.DomainMatrix(m, matrix.shape, F3)
+    return m.rank()
 
 
 def calc_tait_0_in_detail(
     faces_matrix: List[List[List[int]]],
 ) -> Tuple[int, List[int], List[int]]:
+    """
+    Given Faces Matrix of a planar cubic graph $G$, calculate number of Tait colorings
+    using $\\alpha$-representation.
+
+    Args:
+        faces_matrix (List[List[List[int]]]): Faces Matrix `fm`, where `fm[i][j]` is
+            a list of all vertices that are present both in face `i` and face `j`.
+            Note that vertex indices should be from 0 to 2n-1, where Faces Matrix
+            has size $(n+2) \times (n+2)$.
+
+    Returns:
+        Tuple[int, List[int], List[int]]:
+            1) Number of Tait colorings
+            2) List of largest nonzero principal minors of Faces Matrix
+                for every vector of spins
+            3) List of ranks of Faces Matrix for every vector of spins
+    """
     n_faces = len(faces_matrix)  # n + 2
     n_vertices = 2 * (n_faces - 2)  # 2n
-    # masks = [ for v in range(n_vertices)]
-    masks = np.zeros((n_vertices, n_faces, n_faces))
+
+    masks_tensor = np.zeros((n_vertices, n_faces, n_faces))
     for v in range(n_vertices):
         for f1 in range(n_faces):
             for f2 in range(f1, n_faces):
                 if v in faces_matrix[f1][f2]:
-                    masks[v][f1][f2] = 1
-                    masks[v][f2][f1] = 1
+                    masks_tensor[v][f1][f2] = 1
+                    masks_tensor[v][f2][f1] = 1
     all_sigma = itertools.product([-1, 1], repeat=n_vertices)
 
     n_tait_0 = 0
@@ -198,8 +321,8 @@ def calc_tait_0_in_detail(
 
     for sigma in all_sigma:
         sigma = np.array(sigma).reshape(-1, 1, 1)
-        faces_matrix_filled = np.sum(masks * sigma, axis=0)
-        gauss, det_minor, rank = gaussian_sum(faces_matrix_filled)
+        faces_matrix_filled = np.sum(masks_tensor * sigma, axis=0)
+        gauss, det_minor, rank, _ = gaussian_sum(faces_matrix_filled)
         n_tait_0 += gauss
         det_minor_list.append(det_minor)
         rank_list.append(rank)
@@ -239,7 +362,7 @@ def calc_tait_0_aggregated(
     for sigma in all_sigma:
         sigma = np.array(sigma).reshape(-1, 1, 1)
         faces_matrix_filled = np.sum(masks * sigma, axis=0)
-        det_minor, rank = largest_nonzero_principal_minor(faces_matrix_filled)
+        det_minor, rank, _ = largest_nonzero_principal_minor(faces_matrix_filled)
 
         if rank == 0:
             n_tait_0 += 1
@@ -261,7 +384,7 @@ def calc_tait_0_aggregated(
 
     assert (
         n_tait_0.numerator % n_tait_0.denominator == 0
-    ), "Calculated sum of Tait colorings is not integer"
+    ), f"Calculated sum of Tait colorings is not integer, got {n_tait_0}"
     n_tait_0 = int(n_tait_0)
 
     return n_tait_0, rank_and_det_counts, n_even_ranks, n_odd_ranks, n_zero_ranks
@@ -270,12 +393,124 @@ def calc_tait_0_aggregated(
 def calc_tait_0_dual_chromatic(faces_adjacency_matrix: List[List[int]]) -> int:
     dual_graph = nx.from_numpy_array(np.array(faces_adjacency_matrix))
     chromatic_polynomial = nx.chromatic_polynomial(dual_graph)
-    print(chromatic_polynomial)
     val = int(chromatic_polynomial.subs({"x": 4}))
     return val // 12
 
 
-def faces_matrix_to_adjacency_matrix(
+def calc_tait_0_fixed_in_detail(
+    faces_matrix: List[List[List[int]]],
+    fixed_values: Dict[int, int],
+) -> Tuple[bool, Tuple[int, List[int], List[int]] | List[int]]:
+    n_faces = len(faces_matrix)  # n + 2
+    n_vertices = 2 * (n_faces - 2)  # 2n
+
+    l = [
+        sum(fixed_values.get(v, 0) for v in faces_matrix[i][i]) % 3
+        for i in range(n_faces)
+    ]
+    l = np.array(l)
+
+    fixed_vertices = np.array(list(fixed_values.keys()))
+    free_vertices = np.array([v for v in range(n_vertices) if v not in fixed_vertices])
+
+    fixed_vertices.sort()
+    free_vertices.sort()
+
+    masks_tensor = np.zeros((len(free_vertices), n_faces, n_faces), dtype=int)
+    for v in free_vertices:
+        for f1 in range(n_faces):
+            for f2 in range(f1, n_faces):
+                if v in faces_matrix[f1][f2]:
+                    vertex_index = np.nonzero(free_vertices == v)[0][0]
+                    masks_tensor[vertex_index][f1][f2] = 1
+                    masks_tensor[vertex_index][f2][f1] = 1
+
+    n_tait_0 = 0
+    det_minor_list = []
+    rank_list = []
+    bordered_det_list = []
+
+    all_free_sigma = itertools.product([-1, 1], repeat=len(free_vertices))
+    for sigma_free in all_free_sigma:
+        sigma_free = np.array(sigma_free).reshape(-1, 1, 1)
+        faces_matrix_filled = np.sum(masks_tensor * sigma_free, axis=0) % 3
+
+        gauss, det_minor, rank, rows = gaussian_sum(faces_matrix_filled)
+
+        # check that system of linear equations is consistent
+        # for this check that rank of an augmented matrix (faces_matrix_filled|l)
+        # is the same as `rank` variable (rank of just `faces_matrix_filled`)
+        augmented_matrix = np.concatenate(
+            [faces_matrix_filled, l.reshape(-1, 1)], axis=1, dtype=int
+        )
+        augmented_matrix_rank = calc_rank_f3(augmented_matrix)
+
+        if rank != augmented_matrix_rank:
+            # System is inconsistent, return False and details
+            return False, (
+                sigma_free.reshape(-1).tolist(),
+                augmented_matrix.tolist(),
+                rank,
+                augmented_matrix_rank,
+            )
+
+        M_ = faces_matrix_filled[np.ix_(rows, rows)]
+
+        l_ = l[rows]
+
+        M_l_ = np.pad(M_, ((0, 1), (0, 1)))
+        M_l_[-1, :-1] = l_
+        M_l_[:-1, -1] = l_
+
+        bordered_det = int(round(np.linalg.det(M_l_))) % 3
+        if bordered_det == 2:
+            bordered_det = -1
+        chi_val = calc_chi(bordered_det * det_minor)
+
+        n_tait_0 += chi_val * gauss
+
+        det_minor_list.append(det_minor)
+        rank_list.append(rank)
+        bordered_det_list.append(bordered_det)
+
+    n_tait_0 = sympy.nsimplify(n_tait_0)
+
+    assert isinstance(
+        n_tait_0, sympy.core.numbers.Integer
+    ), f"Calculated sum of Tait colorings is not integer, got {n_tait_0}"
+
+    return True, (
+        int(n_tait_0),
+        det_minor_list,
+        rank_list,
+        bordered_det_list,
+    )
+
+
+def find_heawood(faces: List[List[int]]):
+    n_faces = len(faces)  # n + 2
+    n_vertices = 2 * (n_faces - 2)  # 2n
+    total_sum = 0
+    good_sigma_list = []
+
+    for i in range(n_faces):
+        faces[i] = list(set(faces[i]))
+
+    for sigma in itertools.product([-1, 1], repeat=n_vertices):
+        bad_sigma = False
+        for face in faces:
+            s = sum(sigma[v] for v in face) % 3
+            if s != 0:
+                bad_sigma = True
+                break
+        if bad_sigma:
+            continue
+        total_sum += 1
+        good_sigma_list.append(sigma)
+    return total_sum, good_sigma_list
+
+
+def faces_matrix_to_dual_adjacency_matrix(
     faces_matrix: List[List[List[int]]],
 ) -> List[List[int]]:
     n = len(faces_matrix)

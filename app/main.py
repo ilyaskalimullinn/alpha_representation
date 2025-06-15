@@ -1,6 +1,6 @@
 import os
 import pathlib
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -17,7 +17,8 @@ from app.graph import (
     calc_tait_0_in_detail,
     calc_tait_0_aggregated,
     calc_tait_0_dual_chromatic,
-    faces_matrix_to_adjacency_matrix,
+    calc_tait_0_fixed_in_detail,
+    faces_matrix_to_dual_adjacency_matrix,
 )
 
 
@@ -36,6 +37,12 @@ class FacesMatrixRequest(BaseModel):
 
 class CalcTait0Request(BaseModel):
     faces_matrix: List[List[List[int]]]
+    detail: bool = True
+
+
+class CalcTait0FixedRequest(BaseModel):
+    faces_matrix: List[List[List[int]]]
+    fixed_spins: Optional[Dict[int, int]]
     detail: bool = True
 
 
@@ -128,6 +135,50 @@ async def calc_tait_0(request: CalcTait0Request):
         }
 
 
+@app.post("/api/v1/calc_tait_0_fixed")
+async def calc_tait_0(request: CalcTait0FixedRequest):
+    faces_matrix = request.faces_matrix
+    detail = request.detail
+    fixed_spins = request.fixed_spins
+    if not detail:
+        return JSONResponse(
+            content={
+                "status": "error",
+                "data": {"message": "No details is not supported yet"},
+            },
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    is_consistent, calculation_details = calc_tait_0_fixed_in_detail(
+        faces_matrix, fixed_spins
+    )
+    if not is_consistent:
+        sigma, augmented_matrix, base_rank, augmented_matrix_rank = calculation_details
+        return JSONResponse(
+            content={
+                "status": "error",
+                "data": {
+                    "message": "System is inconsistent",
+                    "sigma": sigma,
+                    "augmented_matrix": augmented_matrix,
+                    "base_rank": base_rank,
+                    "augmented_matrix_rank": augmented_matrix_rank,
+                },
+            },
+            status_code=status.HTTP_412_PRECONDITION_FAILED,
+        )
+    (tait_0, det_minor_list, rank_list, bordered_det_list) = calculation_details
+    return {
+        "status": "ok",
+        "data": {
+            "tait_0": tait_0,
+            "det_list": det_minor_list,
+            "rank_list": rank_list,
+            "bordered_det_list": bordered_det_list,
+        },
+    }
+
+
 @app.post("/api/v1/calc_tait_0_dual_chromatic")
 async def calc_tait_0_using_dual_chromatic(request: CalcTait0DualChromatic):
     faces_matrix = request.faces_matrix
@@ -143,7 +194,7 @@ async def calc_tait_0_using_dual_chromatic(request: CalcTait0DualChromatic):
             status_code=status.HTTP_400_BAD_REQUEST,
         )
     if dual_adjacency_matrix is None:
-        dual_adjacency_matrix = faces_matrix_to_adjacency_matrix(faces_matrix)
+        dual_adjacency_matrix = faces_matrix_to_dual_adjacency_matrix(faces_matrix)
         print(dual_adjacency_matrix)
 
     tait_0 = calc_tait_0_dual_chromatic(dual_adjacency_matrix)
