@@ -43,7 +43,6 @@ class CalcTait0Request(BaseModel):
 class CalcTait0FixedRequest(BaseModel):
     faces_matrix: List[List[List[int]]]
     fixed_spins: Optional[Dict[int, int]]
-    detail: bool = True
 
 
 class CalcTait0DualChromatic(BaseModel):
@@ -134,7 +133,7 @@ async def calc_tait_0(request: CalcTait0Request):
             n_odd_ranks,
             n_zero_ranks,
             det_minors,
-            ranks,
+            rank_list,
             gauss_sums,
             nums,
             total_gauss_sums,
@@ -148,28 +147,19 @@ async def calc_tait_0(request: CalcTait0Request):
                 "n_even_ranks": n_even_ranks,
                 "n_odd_ranks": n_odd_ranks,
                 "n_zero_ranks": n_zero_ranks,
-                "det_minors": det_minors,
-                "ranks": ranks,
-                "gauss_sums": gauss_sums,
-                "nums": nums,
-                "total_gauss_sums": total_gauss_sums,
+                "det_list": det_minors,
+                "rank_list": rank_list,
+                "gauss_sum_list": gauss_sums,
+                "num_list": nums,
+                "total_gauss_sum_list": total_gauss_sums,
             },
         }
 
 
 @app.post("/api/v1/calc_tait_0_fixed")
-async def calc_tait_0(request: CalcTait0FixedRequest):
+async def calc_tait_0_fixed(request: CalcTait0FixedRequest):
     faces_matrix = request.faces_matrix
-    detail = request.detail
     fixed_spins = request.fixed_spins
-    if not detail:
-        return JSONResponse(
-            content={
-                "status": "error",
-                "data": {"message": "No details is not supported yet"},
-            },
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
 
     is_consistent, calculation_details = calc_tait_0_fixed_in_detail(
         faces_matrix, fixed_spins
@@ -189,14 +179,29 @@ async def calc_tait_0(request: CalcTait0FixedRequest):
             },
             status_code=status.HTTP_412_PRECONDITION_FAILED,
         )
-    (tait_0, det_minor_list, rank_list, bordered_det_list) = calculation_details
+    (
+        tait_0,
+        det_minor_list,
+        rank_list,
+        gauss_sum_list,
+        bordered_det_list,
+        chi_list,
+        term_list,
+    ) = calculation_details
+
+    gauss_sum_list = [str(v) for v in gauss_sum_list]
+    chi_list = [str(v) for v in chi_list]
+    term_list = [str(v) for v in term_list]
     return {
         "status": "ok",
         "data": {
             "tait_0": tait_0,
             "det_list": det_minor_list,
             "rank_list": rank_list,
+            "gauss_sum_list": gauss_sum_list,
             "bordered_det_list": bordered_det_list,
+            "chi_list": chi_list,
+            "term_list": term_list,
         },
     }
 

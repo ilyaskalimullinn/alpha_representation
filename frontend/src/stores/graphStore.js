@@ -3,6 +3,7 @@ import { ref, watch, computed } from "vue";
 import { fetchFaces, fetchFacesMatrix } from "@/services/api";
 import {
     fetchTaitAlphaRepresentation,
+    fetchTaitAlphaRepresentationFixed,
     fetchTaitChromaticPolynomial,
     fetchVertexPositions,
 } from "../services/api";
@@ -16,6 +17,7 @@ export const useGraphStore = defineStore("graph", () => {
             label: "1",
             active: false,
             color: "lightblue",
+            fixedSpin: "",
         },
         {
             id: 2,
@@ -24,6 +26,7 @@ export const useGraphStore = defineStore("graph", () => {
             label: "2",
             active: false,
             color: "lightblue",
+            fixedSpin: "",
         },
         {
             id: 3,
@@ -32,6 +35,7 @@ export const useGraphStore = defineStore("graph", () => {
             label: "3",
             active: false,
             color: "lightblue",
+            fixedSpin: "",
         },
         {
             id: 4,
@@ -40,6 +44,7 @@ export const useGraphStore = defineStore("graph", () => {
             label: "4",
             active: false,
             color: "lightblue",
+            fixedSpin: "",
         },
     ]);
 
@@ -55,6 +60,14 @@ export const useGraphStore = defineStore("graph", () => {
     const faces = ref([]);
 
     const facesMatrix = ref([]);
+
+    const fixedVertices = computed(() => {
+        return vertices.value.filter((v) => v.fixedSpin !== "");
+    });
+
+    const freeVertices = computed(() => {
+        return vertices.value.filter((v) => v.fixedSpin === "");
+    });
 
     const defaultAlphaRepresentationStats = {
         taitChromatic: 0,
@@ -76,9 +89,47 @@ export const useGraphStore = defineStore("graph", () => {
         },
     };
 
+    const defaultAlphaRepresentationStatsFixed = {
+        taitAlpha: 0,
+        determinantList: [],
+        rankList: [],
+        gaussSumList: [],
+        borderedDeterminantList: [],
+        chiList: [],
+        termList: [],
+        error: {
+            sigmaFree: [],
+            augmentedMatrix: [],
+            baseRank: 0,
+            augmentedMatrixRank: 0,
+        },
+    };
+
     const coloring = ref(
         JSON.parse(JSON.stringify(defaultAlphaRepresentationStats))
     );
+
+    const coloringFixed = ref(
+        JSON.parse(JSON.stringify(defaultAlphaRepresentationStatsFixed))
+    );
+
+    const facesMatrixWithFreeSpins = computed(() => {
+        const m = [];
+        const n = facesMatrix.value.length;
+        for (let i = 0; i < n; i++) {
+            let row = [];
+            for (let j = 0; j < n; j++) {
+                row.push(
+                    facesMatrix.value[i][j].filter(
+                        (vertexIndex) =>
+                            vertices.value[vertexIndex].fixedSpin === ""
+                    )
+                );
+            }
+            m.push(row);
+        }
+        return m;
+    });
 
     const activeVertexId = ref(null);
     const activeEdgeId = ref(null);
@@ -111,6 +162,9 @@ export const useGraphStore = defineStore("graph", () => {
         }
         if (vertex.color === null || vertex.color === undefined) {
             vertex.color = "lightblue";
+        }
+        if (vertex.fixedSpin === undefined || vertex.fixedSpin === null) {
+            vertex.fixedSpin = null;
         }
         vertices.value.push(vertex);
     };
@@ -360,18 +414,62 @@ export const useGraphStore = defineStore("graph", () => {
             coloring.value.taitAlphaNoDetail.numEvenRanks = data.n_even_ranks;
             coloring.value.taitAlphaNoDetail.numOddRanks = data.n_odd_ranks;
             coloring.value.taitAlphaNoDetail.numZeroRanks = data.n_zero_ranks;
-            coloring.value.taitAlphaNoDetail.rankList = data.ranks;
-            coloring.value.taitAlphaNoDetail.determinantList = data.det_minors;
-            coloring.value.taitAlphaNoDetail.gaussSumList = data.gauss_sums;
-            coloring.value.taitAlphaNoDetail.numOfOccurances = data.nums;
+            coloring.value.taitAlphaNoDetail.rankList = data.rank_list;
+            coloring.value.taitAlphaNoDetail.determinantList = data.det_list;
+            coloring.value.taitAlphaNoDetail.gaussSumList = data.gauss_sum_list;
+            coloring.value.taitAlphaNoDetail.numOfOccurances = data.num_list;
             coloring.value.taitAlphaNoDetail.totalGaussSumList =
-                data.total_gauss_sums;
+                data.total_gauss_sum_list;
         }
+    };
+
+    const calcTaitAlphaRepresentationFixed = async () => {
+        if (facesMatrix.value.length === 0) {
+            await findFacesMatrix();
+        }
+
+        if (fixedVertices.length === 0) {
+            return;
+        }
+
+        const fixedSpins = {};
+        for (let vertex of fixedVertices.value) {
+            fixedSpins[parseInt(vertex.id)] = parseInt(vertex.fixedSpin);
+        }
+
+        const resp = await fetchTaitAlphaRepresentationFixed(
+            facesMatrix.value,
+            fixedSpins
+        );
+        const data = resp.data;
+        console.log(resp);
+        console.log(data);
+        if (resp.status === "error") {
+            alert("Система не совместна");
+            coloringFixed.value.error.baseRank = data.base_rank;
+            coloringFixed.value.error.augmentedMatrixRank =
+                data.augmented_matrix_rank;
+            coloringFixed.value.error.augmentedMatrix = data.augmented_matrix;
+            coloringFixed.value.error.sigmaFree = data.sigma;
+            return;
+        }
+
+        coloringFixed.value.taitAlpha = data.tait_0;
+
+        coloringFixed.value.determinantList = data.det_list;
+        coloringFixed.value.rankList = data.rank_list;
+        coloringFixed.value.gaussSumList = data.gauss_sum_list;
+        coloringFixed.value.borderedDeterminantList = data.bordered_det_list;
+        coloringFixed.value.chiList = data.chi_list;
+        coloringFixed.value.termList = data.term_list;
     };
 
     const clearAlphaStats = () => {
         coloring.value = JSON.parse(
             JSON.stringify(defaultAlphaRepresentationStats)
+        );
+        coloringFixed.value = JSON.parse(
+            JSON.stringify(defaultAlphaRepresentationStatsFixed)
         );
     };
 
@@ -380,7 +478,11 @@ export const useGraphStore = defineStore("graph", () => {
         edges,
         faces,
         facesMatrix,
+        facesMatrixWithFreeSpins,
+        fixedVertices,
+        freeVertices,
         coloring,
+        coloringFixed,
         stageConfig,
         activeVertexId,
         activeEdgeId,
@@ -397,5 +499,6 @@ export const useGraphStore = defineStore("graph", () => {
         buildGraph,
         calcTaitChromaticPolynomial,
         calcTaitAlphaRepresentation,
+        calcTaitAlphaRepresentationFixed,
     };
 });

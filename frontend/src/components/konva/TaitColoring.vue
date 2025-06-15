@@ -14,19 +14,35 @@
         <form
             action="#"
             method="post"
-            @submit.prevent="
-                graphStore.calcTaitAlphaRepresentation(alphaDetail)
-            "
+            @submit.prevent="calcTaitAlphaRepresentation()"
         >
             <p>Подсчет через альфа представление</p>
-            <label for="alpha-representation-detail-checkbox">Подробно</label>
-            <input
-                type="checkbox"
-                name="detail"
-                v-model="alphaDetail"
-                id="alpha-representation-detail-checkbox"
-            />
-            <button type="submit">Подсчитать</button>
+
+            <p>
+                <label for="alpha-representation-detail-checkbox"
+                    >Подробно</label
+                >
+                <input
+                    type="checkbox"
+                    name="detail"
+                    v-model="doFindDetails"
+                    id="alpha-representation-detail-checkbox"
+                />
+            </p>
+
+            <p>
+                <label for="alpha-representation-fixed-checkbox"
+                    >С фиксированными спинами</label
+                >
+                <input
+                    type="checkbox"
+                    name="fixed"
+                    v-model="useFixedSpins"
+                    id="alpha-representation-fixed-checkbox"
+                />
+            </p>
+
+            <button type="submit">Посчитать</button>
         </form>
 
         <div
@@ -106,6 +122,79 @@
                 </thead>
             </DataTable>
         </div>
+
+        <div
+            class="fixed-block block"
+            v-if="graphStore.coloringFixed.determinantList.length > 0"
+        >
+            <p>Статистики по фиксированным спинам</p>
+
+            <p>
+                Количество:
+                <span>{{ graphStore.coloringFixed.taitAlpha }}</span>
+            </p>
+
+            <button
+                @click="
+                    downloadCSV(
+                        fixedTableRows,
+                        fixedTableColumns,
+                        'alpha_fixed.csv'
+                    )
+                "
+            >
+                Скачать CSV
+            </button>
+
+            <DataTable :data="fixedTableRows" class="matrix">
+                <thead>
+                    <tr>
+                        <th v-for="columnName in fixedTableColumns">
+                            {{ columnName }}
+                        </th>
+                    </tr>
+                </thead>
+            </DataTable>
+        </div>
+
+        <div
+            class="fixed-error-block block"
+            v-if="graphStore.coloringFixed.error.augmentedMatrix.length > 0"
+        >
+            <p>Система не совместна</p>
+
+            <p>
+                Ранг основной матрицы:
+                {{ graphStore.coloringFixed.error.baseRank }}
+            </p>
+            <p>
+                Ранг расширенной матрицы:
+                {{ graphStore.coloringFixed.error.augmentedMatrixRank }}
+            </p>
+
+            <p>Спины:</p>
+            <ul>
+                <li v-for="(vertex, i) in graphStore.freeVertices">
+                    Вершина {{ vertex.label }}:
+                    {{ graphStore.coloringFixed.error.sigmaFree[i] }}
+                </li>
+            </ul>
+
+            <p>Расширенная матрица:</p>
+
+            <DataTable
+                :data="graphStore.coloringFixed.error.augmentedMatrix"
+                class="matrix"
+            >
+                <thead>
+                    <tr>
+                        <th v-for="columnName in fixedErrorTableColumns">
+                            {{ columnName }}
+                        </th>
+                    </tr>
+                </thead>
+            </DataTable>
+        </div>
     </div>
 </template>
 
@@ -120,7 +209,8 @@ DataTable.use(DataTablesCore);
 
 const graphStore = useGraphStore();
 
-const alphaDetail = ref(false);
+const doFindDetails = ref(false);
+const useFixedSpins = ref(false);
 
 const generateAllSigma = (n) => {
     const total = Math.pow(2, n);
@@ -207,6 +297,63 @@ const downloadCSV = (data, columns, filename) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link); // Clean up
+};
+
+const fixedTableColumns = computed(() => {
+    const vertexLabels = graphStore.freeVertices.map((v) => v.label);
+    return [
+        "Ранг",
+        "Минор",
+        "Гауссова сумма",
+        "det M[l]",
+        "\\chi",
+        "Полное слагаемое",
+        ...vertexLabels,
+    ];
+});
+const fixedTableRows = computed(() => {
+    const n = Math.round(Math.log2(graphStore.coloringFixed.rankList.length));
+    const allSigma = generateAllSigma(n);
+
+    const table = [];
+    for (let i = 0; i < allSigma.length; i++) {
+        let row = [
+            graphStore.coloringFixed.rankList[i],
+            graphStore.coloringFixed.determinantList[i],
+            graphStore.coloringFixed.gaussSumList[i],
+            graphStore.coloringFixed.borderedDeterminantList[i],
+            graphStore.coloringFixed.chiList[i],
+            graphStore.coloringFixed.termList[i],
+            ...allSigma[i],
+        ];
+        table.push(row);
+    }
+    return table;
+});
+
+const fixedErrorTableColumns = computed(() => {
+    const cols = [...graphStore.vertices.map((v) => v.label), "l_fix"];
+    console.log(cols);
+    return cols;
+});
+
+const calcTaitAlphaRepresentation = () => {
+    if (useFixedSpins.value && !doFindDetails.value) {
+        alert(
+            "Для фиксированных спинов можно считать лишь подробные статистики"
+        );
+        return;
+    }
+
+    if (useFixedSpins.value) {
+        if (graphStore.fixedVertices.length === 0) {
+            alert("Укажите хотя бы один зафиксированный спин");
+            return;
+        }
+        graphStore.calcTaitAlphaRepresentationFixed();
+    } else {
+        graphStore.calcTaitAlphaRepresentation(doFindDetails.value);
+    }
 };
 </script>
 

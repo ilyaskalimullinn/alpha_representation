@@ -44,6 +44,15 @@
                     @mouseleave="vertex.active = false"
                 >
                     <input type="text" v-model="vertex.label" />
+
+                    <input
+                        type="number"
+                        placeholder="Фикс. спин"
+                        min="-1"
+                        max="1"
+                        step="2"
+                        v-model="vertex.fixedSpin"
+                    />
                 </li>
             </ul>
         </div>
@@ -64,6 +73,13 @@ const setEdgeActive = (i, j, active) => {
         return;
     }
     graphStore.edges[edgeIndex].active = active;
+};
+
+const validateFixedSpin = (e) => {
+    // const val = e.target.value;
+    // if (val !== "" && val !== "1" && val !== "-" && val !== "-1") {
+    //     e.target.value = "";
+    // }
 };
 </script>
 

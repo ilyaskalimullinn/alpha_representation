@@ -6,12 +6,14 @@
 
     <h3>Матрица граней</h3>
     <button
-        @click="copyToClipboard(JSON.stringify(graphStore.facesMatrix))"
-        v-if="graphStore.facesMatrix.length > 0"
+        @click="
+            copyToClipboard(JSON.stringify(graphStore.facesMatrixWithFreeSpins))
+        "
+        v-if="graphStore.facesMatrixWithFreeSpins.length > 0"
     >
         Копировать
     </button>
-    <table v-if="graphStore.facesMatrix.length > 0" class="matrix">
+    <table v-if="graphStore.facesMatrixWithFreeSpins.length > 0" class="matrix">
         <tr>
             <th>Грань</th>
 
@@ -26,7 +28,7 @@
         </tr>
 
         <tr
-            v-for="(row, i) in graphStore.facesMatrix"
+            v-for="(row, i) in graphStore.facesMatrixWithFreeSpins"
             :key="`faces_matrix_i_${i}`"
         >
             <th

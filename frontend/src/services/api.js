@@ -22,13 +22,22 @@ const defaultApiExceptionHandler = (error) => {
         console.error(error.response);
 
         let err = new Error(
-            error.response.data.message || "Неизвестная ошибка без сообщения"
+            error.response.data.data.message ||
+                "Неизвестная ошибка без сообщения"
         );
         err.statusCode = error.response.status;
         throw err;
     } else {
         console.error("Полная ошибка:", error.message);
         throw new Error("Неизвестная ошибка, попробуйте еще раз");
+    }
+};
+
+const fixedSpinsExceptionHandler = (error) => {
+    if (error.response && error.response.status == 412) {
+        return error.response;
+    } else {
+        return defaultApiExceptionHandler(error);
     }
 };
 
@@ -72,5 +81,18 @@ export const fetchTaitAlphaRepresentation = async (facesMatrix, detail) => {
     let resp = await instance
         .post("/calc_tait_0", { faces_matrix: facesMatrix, detail })
         .catch(defaultApiExceptionHandler);
+    return resp.data;
+};
+
+export const fetchTaitAlphaRepresentationFixed = async (
+    facesMatrix,
+    fixedSpins
+) => {
+    let resp = await instance
+        .post("/calc_tait_0_fixed", {
+            faces_matrix: facesMatrix,
+            fixed_spins: fixedSpins,
+        })
+        .catch(fixedSpinsExceptionHandler);
     return resp.data;
 };

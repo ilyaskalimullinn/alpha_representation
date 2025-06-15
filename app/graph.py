@@ -444,10 +444,12 @@ def calc_tait_0_fixed_in_detail(
                     masks_tensor[vertex_index][f1][f2] = 1
                     masks_tensor[vertex_index][f2][f1] = 1
 
-    n_tait_0 = 0
     det_minor_list = []
     rank_list = []
     bordered_det_list = []
+    gauss_sum_list = []
+    chi_list = []
+    term_list = []
 
     all_free_sigma = itertools.product([-1, 1], repeat=len(free_vertices))
     for sigma_free in all_free_sigma:
@@ -486,12 +488,14 @@ def calc_tait_0_fixed_in_detail(
             bordered_det = -1
         chi_val = calc_chi(bordered_det * det_minor)
 
-        n_tait_0 += chi_val * gauss
-
+        gauss_sum_list.append(gauss)
         det_minor_list.append(det_minor)
         rank_list.append(rank)
         bordered_det_list.append(bordered_det)
+        chi_list.append(chi_val)
+        term_list.append(chi_val * gauss)
 
+    n_tait_0 = sum(term_list)
     n_tait_0 = sympy.nsimplify(n_tait_0)
 
     assert isinstance(
@@ -502,7 +506,10 @@ def calc_tait_0_fixed_in_detail(
         int(n_tait_0),
         det_minor_list,
         rank_list,
+        gauss_sum_list,
         bordered_det_list,
+        chi_list,
+        term_list,
     )
 
 
