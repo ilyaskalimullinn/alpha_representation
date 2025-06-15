@@ -20,6 +20,7 @@ from app.graph import (
     calc_tait_0_fixed_in_detail,
     faces_matrix_to_dual_adjacency_matrix,
     calc_s_values,
+    calc_heawood,
 )
 
 
@@ -43,7 +44,7 @@ class CalcTait0Request(BaseModel):
 
 class CalcTait0FixedRequest(BaseModel):
     faces_matrix: List[List[List[int]]]
-    fixed_spins: Optional[Dict[int, int]]
+    fixed_spins: Dict[int, int]
 
 
 class CalcTait0DualChromatic(BaseModel):
@@ -55,6 +56,11 @@ class FindSValuesRequest(BaseModel):
     faces_matrix: List[List[List[int]]]
     vertices_in: List[int]
     vertices_mid: List[int]
+
+
+class HeawoodRequest(BaseModel):
+    faces: List[List[int]]
+    fixed_spins: Optional[Dict[int, int]] = None
 
 
 BASE_DIR = pathlib.Path(os.path.abspath(__file__)).parent.parent
@@ -255,4 +261,17 @@ async def find_s_values(request: FindSValuesRequest):
     return {
         "status": "ok",
         "data": {"s": results},
+    }
+
+
+@app.post("/api/v1/calc_heawood")
+async def find_heawood(request: HeawoodRequest):
+    fixed_spins = request.fixed_spins
+    if fixed_spins is not None:
+        raise NotImplementedError("Not yet")
+
+    configurations = calc_heawood(request.faces)
+    return {
+        "status": "ok",
+        "data": {"configurations": configurations},
     }

@@ -10,6 +10,34 @@
         </p>
     </div>
 
+    <div class="heawood block">
+        <button @click="graphStore.calcTaitHeawood()">
+            Подсчет через подход Хивуда
+        </button>
+        <p>
+            Количество:
+            <span>{{ graphStore.coloring.heawood.configurations.length }}</span>
+        </p>
+
+        <div v-if="graphStore.coloring.heawood.configurations.length > 0">
+            <button
+                @click="downloadCSV(heawoodRows, heawoodColumns, 'heawood.csv')"
+            >
+                Скачать CSV
+            </button>
+
+            <DataTable :data="heawoodRows" class="matrix">
+                <thead>
+                    <tr>
+                        <th v-for="columnName in heawoodColumns">
+                            {{ columnName }}
+                        </th>
+                    </tr>
+                </thead>
+            </DataTable>
+        </div>
+    </div>
+
     <div class="alpha block">
         <form
             action="#"
@@ -321,6 +349,14 @@ const calcTaitAlphaRepresentation = () => {
         graphStore.calcTaitAlphaRepresentation(doFindDetails.value);
     }
 };
+
+const heawoodRows = computed(() => {
+    return graphStore.coloring.heawood.configurations;
+});
+
+const heawoodColumns = computed(() => {
+    return graphStore.vertices.map((v) => v.label);
+});
 </script>
 
 <style scoped>

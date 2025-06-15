@@ -513,10 +513,9 @@ def calc_tait_0_fixed_in_detail(
     )
 
 
-def find_heawood(faces: List[List[int]]):
+def calc_heawood(faces: List[List[int]]) -> List[int]:
     n_faces = len(faces)  # n + 2
     n_vertices = 2 * (n_faces - 2)  # 2n
-    total_sum = 0
     good_sigma_list = []
 
     for i in range(n_faces):
@@ -531,9 +530,8 @@ def find_heawood(faces: List[List[int]]):
                 break
         if bad_sigma:
             continue
-        total_sum += 1
         good_sigma_list.append(sigma)
-    return total_sum, good_sigma_list
+    return good_sigma_list
 
 
 def faces_matrix_to_dual_adjacency_matrix(

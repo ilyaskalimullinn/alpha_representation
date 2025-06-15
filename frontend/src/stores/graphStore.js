@@ -7,6 +7,7 @@ import {
     fetchTaitAlphaRepresentationFixed,
     fetchTaitChromaticPolynomial,
     fetchVertexPositions,
+    fetchHeawood,
 } from "@/services/api";
 
 export const useGraphStore = defineStore("graph", () => {
@@ -87,6 +88,9 @@ export const useGraphStore = defineStore("graph", () => {
             gaussSumList: [],
             numOfOccurances: [],
             totalGaussSumList: [],
+        },
+        heawood: {
+            configurations: [],
         },
     };
 
@@ -507,6 +511,22 @@ export const useGraphStore = defineStore("graph", () => {
         );
     };
 
+    const calcTaitHeawood = async () => {
+        if (faces.value.length === 0) {
+            await findFaces();
+        }
+
+        const resp = await fetchHeawood(
+            faces.value.map((f) =>
+                f.vertices.map((v) => vertices.value.indexOf(v))
+            )
+        );
+
+        const data = resp.data;
+
+        coloring.value.heawood.configurations = data.configurations;
+    };
+
     return {
         vertices,
         edges,
@@ -535,5 +555,6 @@ export const useGraphStore = defineStore("graph", () => {
         calcTaitChromaticPolynomial,
         calcTaitAlphaRepresentation,
         calcTaitAlphaRepresentationFixed,
+        calcTaitHeawood,
     };
 });

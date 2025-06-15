@@ -107,3 +107,13 @@ export const fetchSValues = async (facesMatrix, verticesIn, verticesMid) => {
         .catch(defaultApiExceptionHandler);
     return resp.data;
 };
+
+export const fetchHeawood = async (faces, fixedSpins = null) => {
+    let resp = await instance
+        .post("/calc_heawood", {
+            faces,
+            fixed_spins: fixedSpins,
+        })
+        .catch(defaultApiExceptionHandler);
+    return resp.data;
+};
