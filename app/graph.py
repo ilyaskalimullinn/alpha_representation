@@ -546,3 +546,63 @@ def faces_matrix_to_dual_adjacency_matrix(
     for i in range(n):
         adjacency_matrix[i][i] = 0
     return adjacency_matrix
+
+
+def calc_s_values(
+    faces_matrix: List[List[List[int]]], vertices_in: List[int], vertices_mid: List[int]
+) -> List[Any]:
+    n_faces = len(faces_matrix)
+    vertices_in.sort()
+    vertices_mid.sort()
+
+    vertices_in = np.array(vertices_in)
+    vertices_mid = np.array(vertices_mid)
+
+    masks_tensor_mid = np.zeros((len(vertices_mid), n_faces, n_faces), dtype=int)
+    for v in vertices_mid:
+        for f1 in range(n_faces):
+            for f2 in range(f1, n_faces):
+                if v in faces_matrix[f1][f2]:
+                    vertex_index = np.nonzero(vertices_mid == v)[0][0]
+                    masks_tensor_mid[vertex_index][f1][f2] = 1
+                    masks_tensor_mid[vertex_index][f2][f1] = 1
+
+    masks_tensor_in = np.zeros((len(vertices_in), n_faces, n_faces), dtype=int)
+    for v in vertices_in:
+        for f1 in range(n_faces):
+            for f2 in range(f1, n_faces):
+                if v in faces_matrix[f1][f2]:
+                    vertex_index = np.nonzero(vertices_in == v)[0][0]
+                    masks_tensor_in[vertex_index][f1][f2] = 1
+                    masks_tensor_in[vertex_index][f2][f1] = 1
+
+    all_sigma_mid = itertools.product([-1, 1], repeat=len(vertices_mid))
+
+    results = []
+
+    for sigma_mid in all_sigma_mid:
+
+        sigma_mid = np.array(sigma_mid).reshape(-1, 1, 1)
+        faces_matrix_filled_mid = np.sum(masks_tensor_mid * sigma_mid, axis=0) % 3
+
+        all_x = itertools.product([-1, 0, 1], repeat=n_faces)
+        for x in all_x:
+            x = np.array(x).reshape(-1, 1)
+
+            s = 0
+            all_sigma_in = itertools.product([-1, 1], repeat=len(vertices_in))
+            for sigma_in in all_sigma_in:
+                sigma_in = np.array(sigma_in).reshape(-1, 1, 1)
+                faces_matrix_filled_in = np.sum(masks_tensor_in * sigma_in, axis=0)
+
+                faces_matrix_filled = (
+                    faces_matrix_filled_in + faces_matrix_filled_mid
+                ) % 3
+
+                s += calc_chi((x.T @ faces_matrix_filled @ x)[0][0])
+
+            s = sympy.nsimplify(s)
+
+            results.append(s)
+
+    return results

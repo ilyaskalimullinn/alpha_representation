@@ -19,6 +19,7 @@ from app.graph import (
     calc_tait_0_dual_chromatic,
     calc_tait_0_fixed_in_detail,
     faces_matrix_to_dual_adjacency_matrix,
+    calc_s_values,
 )
 
 
@@ -48,6 +49,12 @@ class CalcTait0FixedRequest(BaseModel):
 class CalcTait0DualChromatic(BaseModel):
     faces_matrix: Optional[List[List[List[int]]]] = None
     dual_adjacency_matrix: Optional[List[List[List[int]]]] = None
+
+
+class FindSValuesRequest(BaseModel):
+    faces_matrix: List[List[List[int]]]
+    vertices_in: List[int]
+    vertices_mid: List[int]
 
 
 BASE_DIR = pathlib.Path(os.path.abspath(__file__)).parent.parent
@@ -234,4 +241,18 @@ async def calc_tait_0_using_dual_chromatic(request: CalcTait0DualChromatic):
     return {
         "status": "ok",
         "data": {"tait_0": tait_0},
+    }
+
+
+@app.post("/api/v1/calc_s_values")
+async def find_s_values(request: FindSValuesRequest):
+    results = calc_s_values(
+        request.faces_matrix,
+        vertices_in=request.vertices_in,
+        vertices_mid=request.vertices_mid,
+    )
+    results = [str(v) for v in results]
+    return {
+        "status": "ok",
+        "data": {"s": results},
     }

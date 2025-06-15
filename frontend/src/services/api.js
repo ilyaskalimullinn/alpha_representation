@@ -96,3 +96,14 @@ export const fetchTaitAlphaRepresentationFixed = async (
         .catch(fixedSpinsExceptionHandler);
     return resp.data;
 };
+
+export const fetchSValues = async (facesMatrix, verticesIn, verticesMid) => {
+    let resp = await instance
+        .post("/calc_s_values", {
+            faces_matrix: facesMatrix,
+            vertices_in: verticesIn,
+            vertices_mid: verticesMid,
+        })
+        .catch(defaultApiExceptionHandler);
+    return resp.data;
+};

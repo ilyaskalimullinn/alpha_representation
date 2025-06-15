@@ -203,7 +203,7 @@ import { ref, computed } from "vue";
 import { useGraphStore } from "@/stores/graphStore";
 import DataTable from "datatables.net-vue3";
 import DataTablesCore from "datatables.net-dt";
-import { unparse } from "papaparse";
+import { generateAllSigma, downloadCSV } from "@/services/utils";
 
 DataTable.use(DataTablesCore);
 
@@ -212,22 +212,6 @@ const graphStore = useGraphStore();
 const doFindDetails = ref(false);
 const useFixedSpins = ref(false);
 
-const generateAllSigma = (n) => {
-    const total = Math.pow(2, n);
-    const result = [];
-
-    for (let i = 0; i < total; i++) {
-        const combination = [];
-        for (let j = n - 1; j >= 0; j--) {
-            // Changed to decrement
-            // Check each bit position (right to left)
-            combination.push(i & (1 << j) ? 1 : -1);
-        }
-        result.push(combination);
-    }
-
-    return result;
-};
 const detailedTableColumns = computed(() => {
     return [
         "Ранг",
@@ -277,27 +261,6 @@ const noDetailsTableRows = computed(() => {
     }
     return rows;
 });
-
-const downloadCSV = (data, columns, filename) => {
-    // Convert data to CSV format
-
-    let csv =
-        unparse({ fields: columns, data: [] }) +
-        unparse(data, { header: false });
-
-    // Create a download link
-    const link = document.createElement("a");
-    link.setAttribute(
-        "href",
-        "data:text/csv;charset=utf-8," + encodeURIComponent(csv)
-    );
-    link.setAttribute("download", filename); // Set the filename
-
-    // Programmatically trigger the download
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link); // Clean up
-};
 
 const fixedTableColumns = computed(() => {
     const vertexLabels = graphStore.freeVertices.map((v) => v.label);

@@ -6,9 +6,9 @@ import SValuesControl from "@/components/konva/SValuesControl.vue";
     <div class="container">
         <h1>Величины S</h1>
         <main class="main">
-            <section class="section">123</section>
-
-            <SValuesControl />
+            <section class="section">
+                <SValuesControl />
+            </section>
         </main>
     </div>
 </template>
