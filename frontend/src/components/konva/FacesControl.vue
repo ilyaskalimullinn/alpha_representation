@@ -8,9 +8,7 @@
 
     <h3>Матрица граней</h3>
     <button
-        @click="
-            copyToClipboard(JSON.stringify(graphStore.facesMatrixWithFreeSpins))
-        "
+        @click="copyToClipboard(JSON.stringify(getFacesMatrixData()))"
         v-if="graphStore.facesMatrixWithFreeSpins.length > 0"
         class="button"
     >
@@ -112,6 +110,25 @@ const setFaceActive = (face, active) => {
     for (let edge of face.edges) {
         edge.active = active;
     }
+};
+
+const getFacesMatrixData = () => {
+    const data = {
+        facesMatrix: graphStore.facesMatrix,
+        vertices: graphStore.vertices.map((v) => {
+            return {
+                id: v.id,
+                label: v.label,
+                fixedSpin: v.fixedSpin,
+            };
+        }),
+    };
+
+    if (graphStore.fixedVertices.length > 0) {
+        data.lFixed = graphStore.lFixed;
+    }
+
+    return data;
 };
 </script>
 

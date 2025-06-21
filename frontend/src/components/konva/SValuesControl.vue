@@ -5,6 +5,7 @@ import { copyToClipboard } from "@/services/utils";
 import DataTable from "datatables.net-vue3";
 import DataTablesCore from "datatables.net-dt";
 import { generateAllSigma, downloadCSV, generateAllX } from "@/services/utils";
+import Spinner from "@/components/utils/Spinner.vue";
 
 DataTable.use(DataTablesCore);
 
@@ -15,15 +16,22 @@ function updateMatrix(i, j) {
     const parsed = raw
         .split(",")
         .map((s) => s.trim())
-        .filter((s) => s.length > 0);
+        .map((vertexId) =>
+            sValuesStore.vertices.find((v) => v.label === vertexId)
+        )
+        .filter((vertex) => vertex !== undefined);
 
     // Update both [i][j] and [j][i] to maintain symmetry
     sValuesStore.facesMatrix[i][j] = parsed;
 
     if (i !== j) {
         sValuesStore.facesMatrix[j][i] = [...parsed];
-        sValuesStore.facesMatrixInput[j][i] = parsed.join(", ");
+        sValuesStore.facesMatrixInput[j][i] = parsed
+            .map((v) => v.label)
+            .join(", ");
     }
+
+    console.log(sValuesStore.facesMatrix);
 }
 
 const tableRows = computed(() => {
@@ -58,23 +66,40 @@ const tableColumns = computed(() => {
     const cols = [...vertexCols, ...faceCols, "S"];
     return cols;
 });
+
+const getFacesMatrixData = () => {
+    const n = sValuesStore.facesMatrix.length;
+
+    // (n, n) matrix of empty arrays
+    const facesMatrixWithIndices = Array.from({ length: n }, () =>
+        Array.from({ length: n }, () => [])
+    );
+
+    for (let i = 0; i < n; i++) {
+        for (let j = i; j < n; j++) {
+            let vertices = sValuesStore.facesMatrix[i][j].map((vertex) =>
+                sValuesStore.vertices.findIndex((v) => v === vertex)
+            );
+            facesMatrixWithIndices[i][j] = vertices;
+            facesMatrixWithIndices[j][i] = vertices;
+        }
+    }
+
+    return {
+        facesMatrix: facesMatrixWithIndices,
+        vertices: sValuesStore.vertices,
+    };
+};
 </script>
 
 <template>
     <div class="flex">
-        <div class="faces-matrix block">
+        <div class="faces-matrix subsection block">
             <h3>Матрица граней</h3>
 
             <button
                 class="button"
-                @click="
-                    copyToClipboard(
-                        JSON.stringify({
-                            faces_matrix: sValuesStore.facesMatrix,
-                            vertices: sValuesStore.vertices,
-                        })
-                    )
-                "
+                @click="copyToClipboard(JSON.stringify(getFacesMatrixData()))"
             >
                 Копировать
             </button>
@@ -107,7 +132,7 @@ const tableColumns = computed(() => {
             </div>
         </div>
 
-        <div class="vertices block">
+        <div class="vertices subsection block">
             <button class="button" @click="sValuesStore.addVertex({})">
                 Добавить вершину
             </button>
@@ -162,18 +187,24 @@ const tableColumns = computed(() => {
             </ul>
         </div>
 
-        <div class="block">
+        <div class="subsection block">
             <button class="button" @click="sValuesStore.findSValue()">
                 Посчитать величины S
             </button>
 
-            <div class="s-values-block block" v-if="sValuesStore.s.length > 0">
+            <Spinner v-if="sValuesStore.isLoading" />
+
+            <div
+                class="s-values-block block"
+                v-else-if="sValuesStore.s.length > 0"
+            >
                 <p>Величины S</p>
 
                 <button
                     @click="
                         downloadCSV(tableRows, tableColumns, 's_values.csv')
                     "
+                    class="button"
                 >
                     Скачать CSV
                 </button>
@@ -196,6 +227,9 @@ const tableColumns = computed(() => {
 .flex {
     /* display: flex; */
     margin-bottom: 20px;
+}
+.subsection {
+    width: 100%;
 }
 .vertices {
     margin-right: 20px;

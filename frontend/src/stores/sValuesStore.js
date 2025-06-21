@@ -28,7 +28,15 @@ export const useSValuesStore = defineStore("sValues", () => {
         ],
     ];
 
-    const facesMatrix = ref(defaultFacesMatrix);
+    const facesMatrix = ref(
+        defaultFacesMatrix.map((row) =>
+            row.map((cell) =>
+                cell.map((vertexId) =>
+                    vertices.value.find((v) => v.id === vertexId)
+                )
+            )
+        )
+    );
 
     const facesMatrixInput = ref(
         defaultFacesMatrix.map((row) =>
@@ -52,6 +60,8 @@ export const useSValuesStore = defineStore("sValues", () => {
     });
 
     const s = ref([]);
+
+    const isLoading = ref(false);
 
     const deleteVertex = (vertex) => {
         vertices.value = vertices.value.filter((v) => v.id !== vertex.id);
@@ -95,6 +105,7 @@ export const useSValuesStore = defineStore("sValues", () => {
     };
 
     const findSValue = async () => {
+        isLoading.value = true;
         const matrix = [];
         const n = facesMatrix.value.length;
 
@@ -102,10 +113,8 @@ export const useSValuesStore = defineStore("sValues", () => {
             let row = [];
             for (let j = 0; j < n; j++) {
                 row.push(
-                    facesMatrix.value[i][j].map((vertexId) =>
-                        vertices.value.findIndex(
-                            (v) => v.id === parseInt(vertexId)
-                        )
+                    facesMatrix.value[i][j].map((vertex) =>
+                        vertices.value.findIndex((v) => v === vertex)
                     )
                 );
             }
@@ -132,6 +141,8 @@ export const useSValuesStore = defineStore("sValues", () => {
         const data = resp.data;
 
         s.value = data.s;
+
+        isLoading.value = false;
     };
 
     const deleteFace = (faceIndex) => {
@@ -158,6 +169,7 @@ export const useSValuesStore = defineStore("sValues", () => {
         facesMatrix,
         facesMatrixInput,
         s,
+        isLoading,
         deleteFace,
         deleteVertex,
         addVertex,
