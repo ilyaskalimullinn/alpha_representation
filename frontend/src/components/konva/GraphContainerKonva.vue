@@ -1,7 +1,8 @@
 <script setup>
 import { useGraphStore } from "@/stores/graphStore";
 import { storeToRefs } from "pinia";
-import { defineProps, ref, watch } from "vue";
+import { defineProps, ref, watch, computed } from "vue";
+import ColorPicker from "@/components/utils/ColorPicker.vue";
 
 const props = defineProps({
     stageConfig: {
@@ -188,6 +189,17 @@ const handleExport = () => {
     link.click();
     document.body.removeChild(link);
 };
+
+const selectedEdgeName = computed(() => {
+    if (contextMenu.value.edge) {
+        return (
+            graphStore.getVertexById(contextMenu.value.edge.vertexId1).label +
+            "—" +
+            graphStore.getVertexById(contextMenu.value.edge.vertexId2).label
+        );
+    }
+    return "";
+});
 </script>
 
 <template>
@@ -208,8 +220,8 @@ const handleExport = () => {
                             graphStore.getVertexById(edge.vertexId2).x,
                             graphStore.getVertexById(edge.vertexId2).y,
                         ],
-                        stroke: edge.active ? 'purple' : edge.color,
-                        strokeWidth: edge.active ? 7 : 5,
+                        stroke: edge.color,
+                        strokeWidth: edge.active ? 10 : 5,
                         tension: 0.5,
                     }"
                     @mouseover="edge.active = true"
@@ -233,8 +245,8 @@ const handleExport = () => {
                         :config="{
                             radius: 20,
                             fill: vertex.color,
-                            stroke: vertex.active ? 'green' : 'blue',
-                            strokeWidth: vertex.active ? 4 : 2,
+                            stroke: 'black',
+                            strokeWidth: vertex.active ? 5 : 2,
                         }"
                     />
                     <v-text
@@ -292,23 +304,29 @@ const handleExport = () => {
             @click.stop
         >
             <div class="context-menu-section" v-if="contextMenu.vertex">
+                <ColorPicker
+                    v-model="contextMenu.vertex.color"
+                    :label="`Цвет вершины ${contextMenu.vertex.label}`"
+                    :defaultColors="[
+                        '#e6adad',
+                        '#ade6b8',
+                        '#add8e6',
+                        '#dfe6ad',
+                    ]"
+                />
+
                 <button class="button" @click="deleteVertex">
                     Удалить вершину {{ contextMenu.vertex.label }}
                 </button>
             </div>
 
             <div class="context-menu-section" v-if="contextMenu.edge">
+                <ColorPicker
+                    v-model="contextMenu.edge.color"
+                    :label="`Цвет ребра ${selectedEdgeName}`"
+                />
                 <button class="button" @click="deleteEdge">
-                    Удалить ребро
-                    {{
-                        graphStore.getVertexById(contextMenu.edge.vertexId1)
-                            .label
-                    }}
-                    -
-                    {{
-                        graphStore.getVertexById(contextMenu.edge.vertexId2)
-                            .label
-                    }}
+                    Удалить ребро {{ selectedEdgeName }}
                 </button>
             </div>
 

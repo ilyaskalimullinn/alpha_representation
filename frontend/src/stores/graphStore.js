@@ -11,6 +11,9 @@ import {
 } from "@/services/api";
 
 export const useGraphStore = defineStore("graph", () => {
+    const defaultVertexColor = "#add8e6";
+    const defaultEdgeColor = "#ff0000";
+
     const vertices = ref([
         {
             id: 1,
@@ -18,7 +21,7 @@ export const useGraphStore = defineStore("graph", () => {
             y: -100,
             label: "A",
             active: false,
-            color: "lightblue",
+            color: defaultVertexColor,
             fixedSpin: "",
         },
         {
@@ -27,7 +30,7 @@ export const useGraphStore = defineStore("graph", () => {
             y: -200,
             label: "B",
             active: false,
-            color: "lightblue",
+            color: defaultVertexColor,
             fixedSpin: "",
         },
         {
@@ -36,7 +39,7 @@ export const useGraphStore = defineStore("graph", () => {
             y: -100,
             label: "C",
             active: false,
-            color: "lightblue",
+            color: defaultVertexColor,
             fixedSpin: "",
         },
         {
@@ -45,18 +48,54 @@ export const useGraphStore = defineStore("graph", () => {
             y: -400,
             label: "D",
             active: false,
-            color: "lightblue",
+            color: defaultVertexColor,
             fixedSpin: "",
         },
     ]);
 
     const edges = ref([
-        { id: 1, vertexId1: 1, vertexId2: 2, active: false, color: "red" },
-        { id: 2, vertexId1: 2, vertexId2: 3, active: false, color: "red" },
-        { id: 3, vertexId1: 1, vertexId2: 3, active: false, color: "red" },
-        { id: 4, vertexId1: 1, vertexId2: 4, active: false, color: "red" },
-        { id: 5, vertexId1: 2, vertexId2: 4, active: false, color: "red" },
-        { id: 6, vertexId1: 3, vertexId2: 4, active: false, color: "red" },
+        {
+            id: 1,
+            vertexId1: 1,
+            vertexId2: 2,
+            active: false,
+            color: defaultEdgeColor,
+        },
+        {
+            id: 2,
+            vertexId1: 2,
+            vertexId2: 3,
+            active: false,
+            color: defaultEdgeColor,
+        },
+        {
+            id: 3,
+            vertexId1: 1,
+            vertexId2: 3,
+            active: false,
+            color: defaultEdgeColor,
+        },
+        {
+            id: 4,
+            vertexId1: 1,
+            vertexId2: 4,
+            active: false,
+            color: defaultEdgeColor,
+        },
+        {
+            id: 5,
+            vertexId1: 2,
+            vertexId2: 4,
+            active: false,
+            color: defaultEdgeColor,
+        },
+        {
+            id: 6,
+            vertexId1: 3,
+            vertexId2: 4,
+            active: false,
+            color: defaultEdgeColor,
+        },
     ]);
 
     const faces = ref([]);
