@@ -92,7 +92,7 @@
     <draggable
         v-model="graphStore.faces"
         item-key="id"
-        tag="ul"
+        tag="ol"
         v-if="graphStore.faces.length > 0"
         @end="graphStore.findFacesMatrix()"
     >
@@ -102,7 +102,6 @@
                 @mouseleave="setFaceActive(element, false)"
                 class="graph-face"
             >
-                {{ index + 1 }})
                 {{ element.vertices.map((v) => v.label).join(", ") }}
             </li>
         </template>

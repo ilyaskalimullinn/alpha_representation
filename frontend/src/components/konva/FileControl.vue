@@ -50,6 +50,10 @@ const getGraphJSON = () => {
         adjacency_matrix: graphStore.adjacencyMatrix,
         vertices: graphStore.vertices,
         edges: graphStore.edges,
+        faces: graphStore.faces.map((f) =>
+            f.vertices.map((v) => graphStore.vertices.indexOf(v))
+        ),
+        faces_matrix: graphStore.facesMatrix,
     };
 };
 

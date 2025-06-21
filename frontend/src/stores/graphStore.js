@@ -60,6 +60,7 @@ export const useGraphStore = defineStore("graph", () => {
             vertexId2: 2,
             active: false,
             color: defaultEdgeColor,
+            isReal: true,
         },
         {
             id: 2,
@@ -67,6 +68,7 @@ export const useGraphStore = defineStore("graph", () => {
             vertexId2: 3,
             active: false,
             color: defaultEdgeColor,
+            isReal: true,
         },
         {
             id: 3,
@@ -74,6 +76,7 @@ export const useGraphStore = defineStore("graph", () => {
             vertexId2: 3,
             active: false,
             color: defaultEdgeColor,
+            isReal: true,
         },
         {
             id: 4,
@@ -81,6 +84,7 @@ export const useGraphStore = defineStore("graph", () => {
             vertexId2: 4,
             active: false,
             color: defaultEdgeColor,
+            isReal: true,
         },
         {
             id: 5,
@@ -88,6 +92,7 @@ export const useGraphStore = defineStore("graph", () => {
             vertexId2: 4,
             active: false,
             color: defaultEdgeColor,
+            isReal: true,
         },
         {
             id: 6,
@@ -95,6 +100,7 @@ export const useGraphStore = defineStore("graph", () => {
             vertexId2: 4,
             active: false,
             color: defaultEdgeColor,
+            isReal: true,
         },
     ]);
 
@@ -233,7 +239,7 @@ export const useGraphStore = defineStore("graph", () => {
                 (stageConfig.value.scaleY * stageConfig.value.height) / 2;
         }
         if (vertex.color === null || vertex.color === undefined) {
-            vertex.color = "lightblue";
+            vertex.color = defaultVertexColor;
         }
         if (vertex.fixedSpin === undefined || vertex.fixedSpin === null) {
             vertex.fixedSpin = "";
@@ -258,7 +264,10 @@ export const useGraphStore = defineStore("graph", () => {
             edge.active = false;
         }
         if (edge.color === null || edge.color === undefined) {
-            edge.color = "red";
+            edge.color = defaultEdgeColor;
+        }
+        if (edge.isReal === null || edge.isReal === undefined) {
+            edge.isReal = true;
         }
         edges.value.push(edge);
     };
@@ -327,9 +336,16 @@ export const useGraphStore = defineStore("graph", () => {
     const findFaces = async () => {
         const positions = vertices.value.map((v) => [v.x, v.y]);
         const data = await fetchFaces(adjacencyMatrix.value, positions);
+        buildFaces(data.data.faces);
+    };
+
+    const buildFaces = (facesList) => {
         const newFaces = [];
-        for (let i in data.data.faces) {
-            const vertexIds = data.data.faces[i].slice(1);
+        for (let i in facesList) {
+            let vertexIds = facesList[i];
+            if (vertexIds[0] === vertexIds[vertexIds.length - 1]) {
+                vertexIds = vertexIds.slice(1);
+            }
             let face = { active: false };
             face.id = parseInt(i) + 1;
             face.vertices = vertexIds.map((v) => vertices.value[v]);
@@ -373,8 +389,6 @@ export const useGraphStore = defineStore("graph", () => {
 
     const buildVertices = async (adjMatrix) => {
         const data = await fetchVertexPositions(adjMatrix);
-
-        console.log(data);
 
         const width = stageConfig.value.width;
         const height = stageConfig.value.height;
@@ -458,7 +472,17 @@ export const useGraphStore = defineStore("graph", () => {
             }
         }
 
-        await findFacesMatrix();
+        await findFaces();
+
+        if (graphData.faces !== undefined) {
+            buildFaces(graphData.faces);
+        }
+
+        if (graphData.faces_matrix !== undefined) {
+            facesMatrix.value = graphData.faces_matrix;
+        } else {
+            await findFacesMatrix();
+        }
     };
 
     const calcTaitChromaticPolynomial = async () => {
@@ -519,8 +543,6 @@ export const useGraphStore = defineStore("graph", () => {
             fixedSpins
         );
         const data = resp.data;
-        console.log(resp);
-        console.log(data);
         if (resp.status === "error") {
             alert("Система не совместна");
             coloringFixed.value.error.baseRank = data.base_rank;

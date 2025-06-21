@@ -222,6 +222,7 @@ const selectedEdgeName = computed(() => {
                         ],
                         stroke: edge.color,
                         strokeWidth: edge.active ? 10 : 5,
+                        dash: edge.isReal ? null : [5, 5],
                         tension: 0.5,
                     }"
                     @mouseover="edge.active = true"
@@ -325,6 +326,15 @@ const selectedEdgeName = computed(() => {
                     v-model="contextMenu.edge.color"
                     :label="`Цвет ребра ${selectedEdgeName}`"
                 />
+                <label for="real-edge-checkbox">
+                    Реальное ребро
+                    <input
+                        type="checkbox"
+                        name="real-edge-checkbox"
+                        id="real-edge-checkbox"
+                        v-model="contextMenu.edge.isReal"
+                    />
+                </label>
                 <button class="button" @click="deleteEdge">
                     Удалить ребро {{ selectedEdgeName }}
                 </button>
