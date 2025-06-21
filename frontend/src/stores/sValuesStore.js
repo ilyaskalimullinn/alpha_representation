@@ -150,7 +150,7 @@ export const useSValuesStore = defineStore("sValues", () => {
         removeRowAndColumn(facesMatrixInput.value, faceIndex);
     };
 
-    function removeRowAndColumn(matrix, i) {
+    const removeRowAndColumn = (matrix, i) => {
         // Remove row at index i
         matrix.splice(i, 1);
 
@@ -160,7 +160,68 @@ export const useSValuesStore = defineStore("sValues", () => {
         }
 
         return matrix;
-    }
+    };
+
+    const buildFacesMatrix = (data) => {
+        if (data.faces_matrix === undefined) {
+            console.error("Нет матрицы граней, ошибка");
+            return;
+        }
+
+        const facesMatrixIndices = data.faces_matrix;
+        const numFaces = data.faces_matrix.length;
+
+        vertices.value = [];
+        facesMatrix.value = Array.from({ length: numFaces }, () =>
+            Array.from({ length: numFaces }, () => [])
+        );
+        facesMatrixInput.value = Array.from({ length: numFaces }, () =>
+            Array.from({ length: numFaces }, () => "")
+        );
+
+        if (data.vertices !== undefined) {
+            // if vertices are present
+
+            for (let v of data.vertices) {
+                addVertex(v);
+            }
+        } else {
+            // need to create vertices based on the max vertice index
+
+            let maxIndex = 0;
+
+            for (let i = 0; i < numFaces; i++) {
+                for (let j = i; j < numFaces; j++) {
+                    if (facesMatrixIndices[i][j] > maxIndex) {
+                        maxIndex = facesMatrixIndices[i][j];
+                    }
+                }
+            }
+
+            // now create all vertices
+            for (let vertexIndex = 0; vertexIndex <= maxIndex; vertexIndex++) {
+                addVertex({});
+            }
+        }
+
+        // now build faces matrix
+        for (let i = 0; i < numFaces; i++) {
+            for (let j = i; j < numFaces; j++) {
+                let verticesList = facesMatrixIndices[i][j].map(
+                    (index) => vertices.value[index]
+                );
+                let verticesString = verticesList
+                    .map((v) => v.label)
+                    .join(", ");
+
+                facesMatrix.value[i][j] = verticesList;
+                facesMatrix.value[j][i] = verticesList;
+
+                facesMatrixInput.value[i][j] = verticesString;
+                facesMatrixInput.value[j][i] = verticesString;
+            }
+        }
+    };
 
     return {
         vertices,
@@ -175,5 +236,6 @@ export const useSValuesStore = defineStore("sValues", () => {
         addVertex,
         extendFacesMatrix,
         findSValue,
+        buildFacesMatrix,
     };
 });

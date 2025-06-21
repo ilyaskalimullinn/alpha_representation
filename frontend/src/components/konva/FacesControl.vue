@@ -15,6 +15,20 @@
         Копировать
     </button>
 
+    <button
+        @click="
+            downloadjs(
+                JSON.stringify(getFacesMatrixData()),
+                'faces_matrix.json',
+                'text/plain'
+            )
+        "
+        v-if="graphStore.facesMatrixWithFreeSpins.length > 0"
+        class="button"
+    >
+        Скачать JSON
+    </button>
+
     <div class="matrix-container">
         <table
             v-if="graphStore.facesMatrixWithFreeSpins.length > 0"
@@ -99,6 +113,7 @@
 import { useGraphStore } from "@/stores/graphStore";
 import { copyToClipboard } from "@/services/utils";
 import draggable from "vuedraggable";
+import downloadjs from "downloadjs";
 
 const graphStore = useGraphStore();
 
@@ -114,7 +129,7 @@ const setFaceActive = (face, active) => {
 
 const getFacesMatrixData = () => {
     const data = {
-        facesMatrix: graphStore.facesMatrix,
+        faces_matrix: graphStore.facesMatrix,
         vertices: graphStore.vertices.map((v) => {
             return {
                 id: v.id,
@@ -125,7 +140,7 @@ const getFacesMatrixData = () => {
     };
 
     if (graphStore.fixedVertices.length > 0) {
-        data.lFixed = graphStore.lFixed;
+        data.l_fixed = graphStore.lFixed;
     }
 
     return data;

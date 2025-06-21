@@ -1,15 +1,17 @@
 <script setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useSValuesStore } from "@/stores/sValuesStore.js";
 import { copyToClipboard } from "@/services/utils";
 import DataTable from "datatables.net-vue3";
 import DataTablesCore from "datatables.net-dt";
 import { generateAllSigma, downloadCSV, generateAllX } from "@/services/utils";
 import Spinner from "@/components/utils/Spinner.vue";
+import downloadjs from "downloadjs";
 
 DataTable.use(DataTablesCore);
 
 const sValuesStore = useSValuesStore();
+const selectedFile = ref(null);
 
 function updateMatrix(i, j) {
     const raw = sValuesStore.facesMatrixInput[i][j];
@@ -30,8 +32,6 @@ function updateMatrix(i, j) {
             .map((v) => v.label)
             .join(", ");
     }
-
-    console.log(sValuesStore.facesMatrix);
 }
 
 const tableRows = computed(() => {
@@ -86,9 +86,35 @@ const getFacesMatrixData = () => {
     }
 
     return {
-        facesMatrix: facesMatrixWithIndices,
+        faces_matrix: facesMatrixWithIndices,
         vertices: sValuesStore.vertices,
     };
+};
+
+const downloadFacesMatrix = () => {
+    downloadjs(
+        JSON.stringify(getFacesMatrixData()),
+        "faces_matrix.json",
+        "text/plain"
+    );
+};
+
+const loadFacesMatrix = (event) => {
+    const file = event.target[0].files[0];
+
+    const reader = new FileReader();
+    reader.onload = async function (e) {
+        let contents = e.target.result;
+        let data = JSON.parse(contents);
+        await sValuesStore.buildFacesMatrix(data);
+        selectedFile.value = null;
+    };
+    reader.readAsText(file);
+};
+
+const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    selectedFile.value = file ? file.name : "";
 };
 </script>
 
@@ -220,6 +246,46 @@ const getFacesMatrixData = () => {
                 </DataTable>
             </div>
         </div>
+
+        <div class="matrix-import-export subsection block">
+            <h3>Импорт и экспорт матрицы граней</h3>
+
+            <div class="actions">
+                <button class="button" @click="downloadFacesMatrix()">
+                    Экспортировать матрицу граней
+                </button>
+
+                <form
+                    class="import-form"
+                    action="#"
+                    method="post"
+                    @submit.prevent="loadFacesMatrix"
+                >
+                    <div class="file-input-container">
+                        <label class="file-label" for="graph-input-file">
+                            <span class="file-label-text">
+                                Выберите JSON файл
+                            </span>
+                            <input
+                                type="file"
+                                name="graph-input-file"
+                                id="graph-input-file"
+                                class="file-input"
+                                required
+                                accept=".json"
+                                @change="handleFileChange"
+                            />
+                            <span class="file-custom">{{
+                                selectedFile || "Выберите файл"
+                            }}</span>
+                        </label>
+                    </div>
+                    <button class="button" type="submit">
+                        Импортировать матрицу граней
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -244,5 +310,64 @@ const getFacesMatrixData = () => {
 
 .face-input {
     max-width: 180px;
+}
+
+.matrix-import-export {
+    max-width: 500px;
+}
+.actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.import-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.file-input-container {
+    position: relative;
+}
+
+.file-label {
+    display: block;
+    cursor: pointer;
+}
+
+.file-input {
+    position: absolute;
+    opacity: 0;
+    width: 0.1px;
+    height: 0.1px;
+    overflow: hidden;
+}
+
+.file-custom {
+    display: block;
+    padding: 1rem;
+    border: 2px dashed #ced4da;
+    border-radius: 8px;
+    text-align: center;
+    transition: all 0.3s ease;
+    background-color: white;
+}
+
+.file-label-text {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #495057;
+    font-weight: 500;
+}
+
+.file-input:focus + .file-custom,
+.file-input:hover + .file-custom {
+    border-color: #4a6bff;
+    box-shadow: 0 0 0 3px rgba(74, 107, 255, 0.2);
+}
+
+.file-input:active + .file-custom {
+    transform: scale(0.98);
 }
 </style>
