@@ -216,7 +216,10 @@
             >
                 <thead>
                     <tr>
-                        <th v-for="columnName in fixedErrorTableColumns">
+                        <th
+                            v-for="columnName in fixedErrorTableColumns"
+                            :key="columnName"
+                        >
                             {{ columnName }}
                         </th>
                     </tr>

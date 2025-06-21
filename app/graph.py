@@ -486,14 +486,14 @@ def calc_tait_0_fixed_in_detail(
         bordered_det = int(round(np.linalg.det(M_l_))) % 3
         if bordered_det == 2:
             bordered_det = -1
-        chi_val = calc_chi(bordered_det * det_minor)
+        chi_val = sympy.nsimplify(calc_chi(bordered_det * det_minor))
 
         gauss_sum_list.append(gauss)
         det_minor_list.append(det_minor)
         rank_list.append(rank)
         bordered_det_list.append(bordered_det)
         chi_list.append(chi_val)
-        term_list.append(chi_val * gauss)
+        term_list.append(sympy.nsimplify(chi_val * gauss))
 
     n_tait_0 = sum(term_list)
     n_tait_0 = sympy.nsimplify(n_tait_0)
