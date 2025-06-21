@@ -2,7 +2,10 @@
     <h3>Подсчет раскрасок Тейта</h3>
 
     <div class="chromatic block">
-        <button @click="graphStore.calcTaitChromaticPolynomial()">
+        <button
+            @click="graphStore.calcTaitChromaticPolynomial()"
+            class="button"
+        >
             Подсчет через хроматический многочлен
         </button>
         <p>
@@ -11,7 +14,7 @@
     </div>
 
     <div class="heawood block">
-        <button @click="graphStore.calcTaitHeawood()">
+        <button @click="graphStore.calcTaitHeawood()" class="button">
             Подсчет через подход Хивуда
         </button>
         <p>
@@ -22,6 +25,7 @@
         <div v-if="graphStore.coloring.heawood.configurations.length > 0">
             <button
                 @click="downloadCSV(heawoodRows, heawoodColumns, 'heawood.csv')"
+                class="button"
             >
                 Скачать CSV
             </button>
@@ -44,33 +48,34 @@
             method="post"
             @submit.prevent="calcTaitAlphaRepresentation()"
         >
-            <p>Подсчет через альфа представление</p>
+            <h4>Подсчет через альфа-представление</h4>
 
             <p>
-                <label for="alpha-representation-detail-checkbox"
-                    >Подробно</label
-                >
-                <input
-                    type="checkbox"
-                    name="detail"
-                    v-model="doFindDetails"
-                    id="alpha-representation-detail-checkbox"
-                />
+                <label for="alpha-representation-detail-checkbox">
+                    Подробно
+                    <input
+                        type="checkbox"
+                        name="detail"
+                        v-model="doFindDetails"
+                        id="alpha-representation-detail-checkbox"
+                    />
+                </label>
             </p>
 
             <p>
-                <label for="alpha-representation-fixed-checkbox"
-                    >С фиксированными спинами</label
-                >
-                <input
-                    type="checkbox"
-                    name="fixed"
-                    v-model="useFixedSpins"
-                    id="alpha-representation-fixed-checkbox"
-                />
+                <label for="alpha-representation-fixed-checkbox">
+                    С фиксированными спинами
+
+                    <input
+                        type="checkbox"
+                        name="fixed"
+                        v-model="useFixedSpins"
+                        id="alpha-representation-fixed-checkbox"
+                    />
+                </label>
             </p>
 
-            <button type="submit">Посчитать</button>
+            <button type="submit" class="button">Посчитать</button>
         </form>
 
         <div
@@ -79,7 +84,7 @@
                 graphStore.coloring.taitAlphaDetail.determinantList.length > 0
             "
         >
-            <p>Подробные статистики</p>
+            <h4>Подробные статистики</h4>
 
             <p>
                 Количество: <span>{{ graphStore.coloring.taitAlpha }}</span>
@@ -93,6 +98,7 @@
                         'alpha_details.csv'
                     )
                 "
+                class="button"
             >
                 Скачать CSV
             </button>
@@ -115,7 +121,7 @@
                     .length > 0
             "
         >
-            <p>Не подробные статистики</p>
+            <h4>Не подробные статистики</h4>
 
             <p>
                 Количество: <span>{{ graphStore.coloring.taitAlpha }}</span>
@@ -136,6 +142,7 @@
                         'alpha_no_details.csv'
                     )
                 "
+                class="button"
             >
                 Скачать CSV
             </button>
@@ -155,7 +162,7 @@
             class="fixed-block block"
             v-if="graphStore.coloringFixed.determinantList.length > 0"
         >
-            <p>Статистики по фиксированным спинам</p>
+            <h4>Статистики по фиксированным спинам</h4>
 
             <p>
                 Количество:
@@ -170,6 +177,7 @@
                         'alpha_fixed.csv'
                     )
                 "
+                class="button"
             >
                 Скачать CSV
             </button>
@@ -189,7 +197,7 @@
             class="fixed-error-block block"
             v-if="graphStore.coloringFixed.error.augmentedMatrix.length > 0"
         >
-            <p>Система не совместна</p>
+            <h4>Система не совместна</h4>
 
             <p>
                 Ранг основной матрицы:

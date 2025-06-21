@@ -5,6 +5,9 @@ import SValuesControl from "@/components/konva/SValuesControl.vue";
 <template>
     <div class="container">
         <h1>Величины S</h1>
+        <h3>
+            <a href="/">Редактор графов</a>
+        </h3>
         <main class="main">
             <section class="section">
                 <SValuesControl />

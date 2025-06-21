@@ -1,8 +1,10 @@
 <template>
-    <button @click="graphStore.findFacesMatrix()">
+    <button @click="graphStore.findFacesMatrix()" class="button">
         Найти матрицу граней для графа
     </button>
-    <button @click="graphStore.findFaces()">Найти грани в графе</button>
+    <button @click="graphStore.findFaces()" class="button">
+        Найти грани в графе
+    </button>
 
     <h3>Матрица граней</h3>
     <button
@@ -10,6 +12,7 @@
             copyToClipboard(JSON.stringify(graphStore.facesMatrixWithFreeSpins))
         "
         v-if="graphStore.facesMatrixWithFreeSpins.length > 0"
+        class="button"
     >
         Копировать
     </button>
@@ -17,7 +20,7 @@
     <div class="matrix-container">
         <table
             v-if="graphStore.facesMatrixWithFreeSpins.length > 0"
-            class="matrix"
+            class="faces-matrix matrix"
         >
             <tr>
                 <th>Грань</th>
@@ -54,7 +57,11 @@
                         setFaceActive(graphStore.faces[j], false);
                     "
                 >
-                    {{ getSigma(elem) }}
+                    {{
+                        elem
+                            .map((i) => graphStore.vertices[i].label)
+                            .join("+") || "0"
+                    }}
                 </td>
             </tr>
         </table>
@@ -106,14 +113,6 @@ const setFaceActive = (face, active) => {
         edge.active = active;
     }
 };
-
-const getSigma = (vertexIds) => {
-    let vertices = vertexIds.map((i) => `σ(${graphStore.vertices[i].label})`);
-    if (vertices.length === 0) {
-        return "0";
-    }
-    return vertices.join("+");
-};
 </script>
 
 <style scoped>
@@ -126,6 +125,10 @@ const getSigma = (vertexIds) => {
 .matrix-container {
     display: flex;
     flex-direction: row;
+}
+
+.faces-matrix td {
+    padding: 3px;
 }
 
 .l_fix {

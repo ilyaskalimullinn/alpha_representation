@@ -9,22 +9,24 @@ import TaitColoring from "@/components/konva/TaitColoring.vue";
 <template>
     <div class="container">
         <h1>Раскраски Тейта</h1>
+
+        <h3>
+            <a href="/s_values">Подсчет значений S</a>
+        </h3>
         <main class="main">
-            <section class="section top">
+            <section class="flex-section section">
                 <div class="block">
                     <GraphContainerKonva />
                 </div>
-                <div class="block">
+                <div class="faces-control block">
                     <FacesControl />
                 </div>
             </section>
-            <section class="section">
-                <div class="block">
+            <section class="flex-section section">
+                <div class="adjacency-matrix block">
                     <AdjacencyMatrix />
                 </div>
-            </section>
-            <section class="section">
-                <div class="block">
+                <div class="file-control block">
                     <FileControl />
                 </div>
             </section>
@@ -38,7 +40,19 @@ import TaitColoring from "@/components/konva/TaitColoring.vue";
 </template>
 
 <style scoped>
-.top {
+.section {
+    width: 100%;
+}
+.flex-section {
     display: flex;
+}
+.faces-control,
+.adjacency-matrix {
+    flex: 1 1 0%;
+}
+
+.file-control {
+    flex: 0 0 auto;
+    min-width: 200px;
 }
 </style>

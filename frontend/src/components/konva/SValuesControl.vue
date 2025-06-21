@@ -1,6 +1,7 @@
 <script setup>
+import { computed } from "vue";
 import { useSValuesStore } from "@/stores/sValuesStore.js";
-import { reactive, watchEffect, computed } from "vue";
+import { copyToClipboard } from "@/services/utils";
 import DataTable from "datatables.net-vue3";
 import DataTablesCore from "datatables.net-dt";
 import { generateAllSigma, downloadCSV, generateAllX } from "@/services/utils";
@@ -61,14 +62,61 @@ const tableColumns = computed(() => {
 
 <template>
     <div class="flex">
-        <div class="vertices">
-            <p>Вершины</p>
+        <div class="faces-matrix block">
+            <h3>Матрица граней</h3>
 
-            <button @click="sValuesStore.addVertex({})">
+            <button
+                class="button"
+                @click="
+                    copyToClipboard(
+                        JSON.stringify({
+                            faces_matrix: sValuesStore.facesMatrix,
+                            vertices: sValuesStore.vertices,
+                        })
+                    )
+                "
+            >
+                Копировать
+            </button>
+
+            <button class="button" @click="sValuesStore.extendFacesMatrix">
+                Добавить грань
+            </button>
+
+            <div>
+                <table class="matrix">
+                    <tr v-for="(row, i) in sValuesStore.facesMatrix">
+                        <td v-for="(cell, j) in row">
+                            <input
+                                class="face-input"
+                                type="text"
+                                v-model="sValuesStore.facesMatrixInput[i][j]"
+                                @input="updateMatrix(i, j)"
+                            />
+                        </td>
+                        <td>
+                            <button
+                                class="delete-face-button button"
+                                @click="sValuesStore.deleteFace(i)"
+                            >
+                                Удалить грань
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="vertices block">
+            <button class="button" @click="sValuesStore.addVertex({})">
                 Добавить вершину
             </button>
-            <ul>
-                <li v-for="vertex in sValuesStore.vertices" :key="vertex.id">
+            <ul class="vertices-list">
+                <li
+                    v-for="vertex in sValuesStore.vertices"
+                    :key="vertex.id"
+                    class="vertex block"
+                >
                     <input
                         type="text"
                         v-model="vertex.label"
@@ -104,70 +152,63 @@ const tableColumns = computed(() => {
                         </div>
                     </div>
 
-                    <button @click="sValuesStore.deleteVertex(vertex)">
+                    <button
+                        class="button"
+                        @click="sValuesStore.deleteVertex(vertex)"
+                    >
                         Удалить вершину
                     </button>
                 </li>
             </ul>
         </div>
 
-        <div class="faces-matrix">
-            <p>Матрица граней</p>
-
-            <button @click="sValuesStore.extendFacesMatrix">
-                Добавить грань
+        <div class="block">
+            <button class="button" @click="sValuesStore.findSValue()">
+                Посчитать величины S
             </button>
 
-            <div class="matrix">
-                <table>
-                    <tr v-for="(row, i) in sValuesStore.facesMatrix">
-                        <td v-for="(cell, j) in row">
-                            <input
-                                type="text"
-                                v-model="sValuesStore.facesMatrixInput[i][j]"
-                                @input="updateMatrix(i, j)"
-                            />
-                        </td>
-                        <td @click="sValuesStore.deleteFace(i)">
-                            Удалить грань
-                        </td>
-                    </tr>
-                </table>
+            <div class="s-values-block block" v-if="sValuesStore.s.length > 0">
+                <p>Величины S</p>
+
+                <button
+                    @click="
+                        downloadCSV(tableRows, tableColumns, 's_values.csv')
+                    "
+                >
+                    Скачать CSV
+                </button>
+
+                <DataTable :data="tableRows" class="matrix data-table">
+                    <thead>
+                        <tr>
+                            <th v-for="columnName in tableColumns">
+                                {{ columnName }}
+                            </th>
+                        </tr>
+                    </thead>
+                </DataTable>
             </div>
-        </div>
-    </div>
-
-    <div>
-        <button @click="sValuesStore.findSValue()">Посчитать величины S</button>
-
-        <div class="s-values-block block" v-if="sValuesStore.s.length > 0">
-            <p>Величины S</p>
-
-            <button
-                @click="downloadCSV(tableRows, tableColumns, 's_values.csv')"
-            >
-                Скачать CSV
-            </button>
-
-            <DataTable :data="tableRows" class="matrix data-table">
-                <thead>
-                    <tr>
-                        <th v-for="columnName in tableColumns">
-                            {{ columnName }}
-                        </th>
-                    </tr>
-                </thead>
-            </DataTable>
         </div>
     </div>
 </template>
 
 <style scoped>
 .flex {
-    display: flex;
+    /* display: flex; */
     margin-bottom: 20px;
 }
 .vertices {
     margin-right: 20px;
+}
+.vertices-list {
+    display: flex;
+    flex-wrap: wrap;
+}
+.vertex {
+    list-style-type: none;
+}
+
+.face-input {
+    max-width: 180px;
 }
 </style>

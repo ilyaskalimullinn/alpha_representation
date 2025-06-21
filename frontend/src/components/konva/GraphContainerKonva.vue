@@ -192,7 +192,6 @@ const handleExport = () => {
 
 <template>
     <div class="graph-container">
-        <button @click="handleExport()">Скачать изображение</button>
         <v-stage
             :config="stageConfig"
             @contextmenu.self="handleStageRightClick($event)"
@@ -292,28 +291,30 @@ const handleExport = () => {
             }"
             @click.stop
         >
-            <button
-                v-if="contextMenu.vertex"
-                class="menu-item"
-                @click="deleteVertex"
-            >
-                Удалить вершину {{ contextMenu.vertex.label }}
-            </button>
+            <div class="context-menu-section" v-if="contextMenu.vertex">
+                <button class="button" @click="deleteVertex">
+                    Удалить вершину {{ contextMenu.vertex.label }}
+                </button>
+            </div>
 
-            <button
-                v-if="contextMenu.edge"
-                class="menu-item"
-                @click="deleteEdge"
-            >
-                Удалить ребро
-                {{ graphStore.getVertexById(contextMenu.edge.vertexId1).label }}
-                -
-                {{ graphStore.getVertexById(contextMenu.edge.vertexId2).label }}
-            </button>
+            <div class="context-menu-section" v-if="contextMenu.edge">
+                <button class="button" @click="deleteEdge">
+                    Удалить ребро
+                    {{
+                        graphStore.getVertexById(contextMenu.edge.vertexId1)
+                            .label
+                    }}
+                    -
+                    {{
+                        graphStore.getVertexById(contextMenu.edge.vertexId2)
+                            .label
+                    }}
+                </button>
+            </div>
 
             <form
                 action="#"
-                class="create-vertex-form"
+                class="create-vertex-form context-menu-section"
                 @submit.prevent="createVertex()"
             >
                 <label for="vertex-label-input">Добавить вершину</label>
@@ -324,12 +325,12 @@ const handleExport = () => {
                     maxlength="3"
                     v-model="newVertexLabel"
                 />
-                <input type="submit" value="Добавить вершину" />
+                <input type="submit" class="button" value="Добавить вершину" />
             </form>
 
             <form
                 action="#"
-                class="create-edge-form"
+                class="create-edge-form context-menu-section"
                 @submit.prevent="createEdge()"
             >
                 <div class="create-edge-vertex">
@@ -366,26 +367,32 @@ const handleExport = () => {
                     </select>
                 </div>
 
-                <input type="submit" value="Добавить ребро" />
+                <input type="submit" class="button" value="Добавить ребро" />
             </form>
 
-            <label for="toggle-faces-visible-checkbox">Метки граней</label>
-            <input
-                type="checkbox"
-                name="toggle-faces-visible"
-                id="toggle-faces-visible-checkbox"
-                v-model="faceLabelsVisible"
-            />
-            <br />
-            <label for="toggle-vertex-visible-checkbox">Метки вершин</label>
-            <input
-                type="checkbox"
-                name="toggle-vertex-visible"
-                id="toggle-vertex-visible-checkbox"
-                v-model="vertexLabelsVisible"
-            />
+            <div class="context-menu-section">
+                <label for="toggle-faces-visible-checkbox">
+                    Метки граней
+                    <input
+                        type="checkbox"
+                        name="toggle-faces-visible"
+                        id="toggle-faces-visible-checkbox"
+                        v-model="faceLabelsVisible"
+                    />
+                </label>
+                <label for="toggle-vertex-visible-checkbox">
+                    Метки вершин
+                    <input
+                        type="checkbox"
+                        name="toggle-vertex-visible"
+                        id="toggle-vertex-visible-checkbox"
+                        v-model="vertexLabelsVisible"
+                    />
+                </label>
+            </div>
         </div>
     </div>
+    <button @click="handleExport()" class="button">Скачать изображение</button>
 </template>
 
 <style scoped>
@@ -397,13 +404,25 @@ const handleExport = () => {
 .context-menu {
     position: absolute;
     z-index: 10;
-    width: 200px;
+    width: 300px;
     border: 1px solid black;
-    background-color: rgb(186, 186, 186);
+    background-color: rgb(235, 229, 246);
     padding: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-.create-vertex-form {
-    border: 1px solid black;
+.context-menu-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3px;
+    border-bottom: 1px solid black;
+    width: 100%;
+}
+
+.context-menu-section:last-child {
+    border-bottom: 0;
 }
 </style>

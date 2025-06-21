@@ -7,8 +7,22 @@
                 id="adjacency-matrix"
                 class="matrix"
             >
+                <colgroup>
+                    <col
+                        :style="{
+                            width: `${100 / (graphStore.vertices.length + 1)}%`,
+                        }"
+                    />
+                    <col
+                        v-for="v in graphStore.vertices"
+                        :key="v.id"
+                        :style="{
+                            width: `${100 / (graphStore.vertices.length + 1)}%`,
+                        }"
+                    />
+                </colgroup>
                 <tr>
-                    <th>Вершина</th>
+                    <th></th>
                     <th
                         v-for="vertex in graphStore.vertices"
                         @mouseover="vertex.active = true"
@@ -18,12 +32,12 @@
                     </th>
                 </tr>
                 <tr v-for="(row, i) in graphStore.adjacencyMatrix">
-                    <th
+                    <td
                         @mouseover="graphStore.vertices[i].active = true"
                         @mouseleave="graphStore.vertices[i].active = false"
                     >
                         {{ graphStore.vertices[i].label }}
-                    </th>
+                    </td>
 
                     <td
                         v-for="(elem, j) in row"
@@ -35,19 +49,24 @@
                 </tr>
             </table>
         </div>
-        <div>
-            <h3>Названия вершин и фиксированные спины</h3>
-            <ul>
+        <div class="vertices-control">
+            <h3>Вершины<br />(и фикс. спины)</h3>
+            <ul class="vertices-list">
                 <li
                     v-for="vertex in graphStore.vertices"
                     @mouseover="vertex.active = true"
                     @mouseleave="vertex.active = false"
                 >
-                    <input type="text" v-model="vertex.label" />
+                    <input
+                        type="text"
+                        v-model="vertex.label"
+                        class="vertex-label-input"
+                    />
 
                     <input
                         type="number"
-                        placeholder="Фикс. спин"
+                        class="vertex-spin-input"
+                        placeholder="Спин"
                         min="-1"
                         max="1"
                         step="2"
@@ -74,13 +93,6 @@ const setEdgeActive = (i, j, active) => {
     }
     graphStore.edges[edgeIndex].active = active;
 };
-
-const validateFixedSpin = (e) => {
-    // const val = e.target.value;
-    // if (val !== "" && val !== "1" && val !== "-" && val !== "-1") {
-    //     e.target.value = "";
-    // }
-};
 </script>
 
 <style scoped>
@@ -88,5 +100,34 @@ const validateFixedSpin = (e) => {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.adjacency-matrix-container {
+    margin-right: 30px;
+    flex: 1 1 0%;
+    min-width: 0;
+}
+
+.vertices-control {
+    flex: 0 0 auto;
+    min-width: 100px;
+}
+
+#adjacency-matrix td {
+    padding: 3px;
+}
+
+.vertex-label-input {
+    max-width: 65px;
+}
+
+.vertex-spin-input {
+    max-width: 65px;
+}
+
+.vertices-list {
+    list-style-type: none;
+    padding: 0;
 }
 </style>
