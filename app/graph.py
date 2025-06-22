@@ -272,7 +272,7 @@ def gaussian_sum(matrix: np.ndarray) -> Tuple[sympy.Basic, int, int, List[int]]:
     """
     det_minor, rank, rows = largest_nonzero_principal_minor(matrix)
     if rank == 0:
-        return 1, det_minor, rank
+        return 1, det_minor, rank, []
     return det_minor * (i_div_sqrt_3**rank), det_minor, rank, rows
 
 

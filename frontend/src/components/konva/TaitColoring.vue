@@ -22,7 +22,12 @@
             <span>{{ graphStore.coloring.heawood.configurations.length }}</span>
         </p>
 
-        <div v-if="graphStore.coloring.heawood.configurations.length > 0">
+        <div
+            v-if="
+                graphStore.coloring.heawood.configurations.length > 0 &&
+                graphStore.facesMatrix.length > 0
+            "
+        >
             <button
                 @click="downloadCSV(heawoodRows, heawoodColumns, 'heawood.csv')"
                 class="button"
@@ -81,7 +86,8 @@
         <div
             class="detail block"
             v-if="
-                graphStore.coloring.taitAlphaDetail.determinantList.length > 0
+                graphStore.coloring.taitAlphaDetail.determinantList.length >
+                    0 && graphStore.facesMatrix.length > 0
             "
         >
             <h4>Подробные статистики</h4>
@@ -118,7 +124,7 @@
             class="no-detail block"
             v-if="
                 Object.keys(graphStore.coloring.taitAlphaNoDetail.rankList)
-                    .length > 0
+                    .length > 0 && graphStore.facesMatrix.length > 0
             "
         >
             <h4>Не подробные статистики</h4>
@@ -160,7 +166,10 @@
 
         <div
             class="fixed-block block"
-            v-if="graphStore.coloringFixed.determinantList.length > 0"
+            v-if="
+                graphStore.coloringFixed.determinantList.length > 0 &&
+                graphStore.facesMatrix.length > 0
+            "
         >
             <h4>Статистики по фиксированным спинам</h4>
 
